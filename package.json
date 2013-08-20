@@ -1,0 +1,12 @@
+{
+  "name": "pandemaniac-graphui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "3.3.x",
+    "jade": "0.34.x"
+  }
+}
