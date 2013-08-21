@@ -2,4 +2,17 @@ extends ../layout
 
 block content
   .container
-    a(href=submission + '/download') Download
+    ul#tab.nav.nav-tabs
+      li.active
+        a(href='#download', data-toggle='tab') Download
+      li
+        a(href='#upload', data-toggle='tab') Upload
+
+    #tabContent.tab-content
+      #download.tab-pane.fade.active.in
+        a(href=submission + '/download') Download
+
+      #upload.tab-pane.fade
+        form(action='#', method='post', enctype='multipart/form-data')
+          input(type='file', name='vertices')
+          input(type='submit', value='Upload')
