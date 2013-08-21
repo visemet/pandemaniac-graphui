@@ -1,0 +1,10 @@
+extends ../layout
+
+block content
+  .container
+    table
+      thead
+        tr: th Available
+      tbody
+        each submission, i in submissions
+          tr: td: a(href='/submit/' + submission.id) #{submission.id}

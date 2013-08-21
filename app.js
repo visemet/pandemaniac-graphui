@@ -5,6 +5,7 @@
 
 var express = require('express')
   , routes = require('./routes')
+  , submit = require('./routes/submit')
   , http = require('http')
   , net = require('net')
   , path = require('path');
@@ -29,6 +30,11 @@ app.configure('development', function() {
 });
 
 app.get('/', routes.index);
+
+app.get('/submit', submit.list);
+app.get('/submit/:id', submit.index);
+app.get('/submit/:id/download', submit.download);
+app.post('/submit/:id', submit.upload);
 
 http.createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));
