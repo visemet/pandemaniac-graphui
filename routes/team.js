@@ -38,18 +38,18 @@ exports.doRegister = function(req, res) {
           // Check for duplicate username
           if (err && err.message.indexOf('E11000 ') !== -1) {
             // TODO: report back to the user
-            res.redirect('/register');
+            return res.redirect('/register');
           } else if (err) {
             throw err;
-          } else {
-            req.login(docs[0], function(err) {
-              if (err) {
-                throw err;
-              }
-
-              return res.redirect('/team/' + req.user.name);
-            });
           }
+
+          req.login(docs[0], function(err) {
+            if (err) {
+              throw err;
+            }
+
+            res.redirect('/');
+          });
         });
       });
     });

@@ -61,8 +61,9 @@ function anonymous(req, res, next) {
 app.get('/register', anonymous, team.register);
 app.post('/register', anonymous, team.doRegister);
 app.get('/login', anonymous, team.login);
-app.post('/login', anonymous, passport.authenticate('local', { successRedirect: 'back'
-                                                             , failureRedirect: '/login' }));
+app.post('/login', anonymous, passport.authenticate('local',
+  { successRedirect: '/', failureRedirect: '/login' }
+));
 app.get('/logout', team.logout);
 
 passport.use(new LocalStrategy(function(username, password, done) {
@@ -75,7 +76,7 @@ passport.use(new LocalStrategy(function(username, password, done) {
 
     function callback(err, res, msg) {
       db.close();
-      return done(err, res, msg);
+      done(err, res, msg);
     };
 
     teams.findOne({ name: username }, function(err, team) {
@@ -94,22 +95,22 @@ passport.use(new LocalStrategy(function(username, password, done) {
           return callback(err);
         }
 
-        if (auth) {
-          return callback(null, team);
-        } else {
+        if (!auth) {
           return callback(null, false, { message: 'Invalid password.' });
         }
+
+        callback(null, team);
       });
     });
   });
 }));
 
 passport.serializeUser(function(user, done) {
-  return done(null, user._id.toHexString());
+  done(null, user._id.toHexString());
 });
 
 passport.deserializeUser(function(id, done) {
-  return done(null, id);
+  done(null, id);
 });
 
 app.get('/team/:id', restrict, team.index);
