@@ -40,6 +40,7 @@ exports.index = function(req, res) {
   res.render('submit/form',
     { title: 'Pandemaniac'
     , submission: submission
+    , selected: 'download'
     }
   );
 };

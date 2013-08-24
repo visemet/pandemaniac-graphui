@@ -6,20 +6,20 @@ append css
 block content
   .container
     ul#tab.nav.nav-tabs
-      li.active
+      li(class=selected === 'download' ? 'active' : '')
         a(href='#download', data-toggle='tab') Download
-      li
+      li(class=selected === 'upload' ? 'active' : '')
         a(href='#upload', data-toggle='tab') Upload
 
     #tabContent.tab-content
-      #download.tab-pane.fade.active.in
+      #download.tab-pane.fade(class=selected === 'download' ? 'active in' : '')
         .control-group
           .controls
             a.btn.btn-primary(href=submission + '/download')
               i.icon-download.icon-white
               |  Download
 
-      #upload.tab-pane.fade
+      #upload.tab-pane.fade(class=selected === 'upload' ? 'active in' : '')
         form(action=submission + '/upload', method='post', enctype='multipart/form-data')
           .fileupload.fileupload-new(data-provides='fileupload', data-name='vertices')
             .control-group
