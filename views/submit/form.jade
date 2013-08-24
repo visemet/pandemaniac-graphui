@@ -15,14 +15,14 @@ block content
       #download.tab-pane.fade.active.in
         .control-group
           .controls
-            .input-prepend
-              span.add-on: i.icon-download
-              a.btn.btn-primary(href=submission + '/download') Download
+            a.btn.btn-primary(href=submission + '/download')
+              i.icon-download.icon-white
+              |  Download
 
       #upload.tab-pane.fade
         form(action=submission + '/upload', method='post', enctype='multipart/form-data')
-          .control-group
-            .fileupload.fileupload-new(data-provides='fileupload')
+          .fileupload.fileupload-new(data-provides='fileupload', data-name='vertices')
+            .control-group
               .input-append
                 .input-large.uneditable-input
                   i.icon-file.fileupload-exists
@@ -31,13 +31,13 @@ block content
                 span.btn.btn-info.btn-file
                   span.fileupload-new Select file
                   span.fileupload-exists Change
-                  input(type='file', name='vertices')
-                a.btn.btn-warning.btn-file.fileupload-exists(href='', data-dismiss='fileupload') Remove
-          .control-group
-            .control
-              .input-prepend
-                span.add-on: i.icon-upload
-                input.btn.btn-primary(type='submit', value='Upload')
+                  input(type='file')
+                a.btn.btn-warning.btn-file.fileupload-exists(data-dismiss='fileupload') Remove
+            .control-group
+              .control
+                button.btn.btn-primary.btn-file.fileupload-exists(type='submit')
+                  i.icon-upload.icon-white
+                  |  Upload
 
 append js
   script(src='/js/bootstrap-fileupload.min.js')
