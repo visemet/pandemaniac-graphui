@@ -1,5 +1,8 @@
 extends ../layout
 
+append css
+  link(rel='stylesheet', href='/css/bootstrap-fileupload.min.css')
+
 block content
   .container
     ul#tab.nav.nav-tabs
@@ -10,9 +13,31 @@ block content
 
     #tabContent.tab-content
       #download.tab-pane.fade.active.in
-        a(href=submission + '/download') Download
+        .control-group
+          .controls
+            .input-prepend
+              span.add-on: i.icon-download
+              a.btn.btn-primary(href=submission + '/download') Download
 
       #upload.tab-pane.fade
-        form(action='#', method='post', enctype='multipart/form-data')
-          input(type='file', name='vertices')
-          input(type='submit', value='Upload')
+        form(action=submission + '/upload', method='post', enctype='multipart/form-data')
+          .control-group
+            .fileupload.fileupload-new(data-provides='fileupload')
+              .input-append
+                .input-large.uneditable-input
+                  i.icon-file.fileupload-exists
+                  | 
+                  span.fileupload-preview
+                span.btn.btn-info.btn-file
+                  span.fileupload-new Select file
+                  span.fileupload-exists Change
+                  input(type='file', name='vertices')
+                a.btn.btn-warning.btn-file.fileupload-exists(href='', data-dismiss='fileupload') Remove
+          .control-group
+            .control
+              .input-prepend
+                span.add-on: i.icon-upload
+                input.btn.btn-primary(type='submit', value='Upload')
+
+append js
+  script(src='/js/bootstrap-fileupload.min.js')

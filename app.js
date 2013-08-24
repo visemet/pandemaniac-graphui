@@ -101,7 +101,7 @@ app.get('/team/:id', team.index);
 app.get('/submit', submit.list);
 app.get('/submit/:id', submit.index);
 app.get('/submit/:id/download', submit.download);
-app.post('/submit/:id', submit.upload);
+app.post('/submit/:id/upload', submit.upload);
 
 http.createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));

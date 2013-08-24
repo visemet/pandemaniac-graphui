@@ -3,9 +3,10 @@ html
   head
     title= title
 
-    link(rel='stylesheet', href='/css/bootstrap-2.3.2.min.css')
-    link(rel='stylesheet', href='/css/bootstrap-responsive-2.3.2.min.css')
-    link(rel='stylesheet', href='/css/spacer.css')
+    block css
+      link(rel='stylesheet', href='/css/bootstrap-2.3.2.min.css')
+      link(rel='stylesheet', href='/css/bootstrap-responsive-2.3.2.min.css')
+      link(rel='stylesheet', href='/css/spacer.css')
   body
     include header
 
@@ -13,6 +14,6 @@ html
 
     include footer
 
-    block scripts
+    block js
       script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js')
       script(src='/js/bootstrap-2.3.2.min.js')
