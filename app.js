@@ -14,7 +14,6 @@ var routes = require('./routes')
 
 var bcrypt = require('bcrypt-nodejs')
   , MongoClient = require('mongodb').MongoClient
-  , ObjectID = require('mongodb').ObjectID
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy;
 
@@ -90,26 +89,11 @@ passport.use(new LocalStrategy(function(username, password, done) {
 }));
 
 passport.serializeUser(function(user, done) {
-  done(null, user._id.toHexString());
+  return done(null, user._id.toHexString());
 });
 
 passport.deserializeUser(function(id, done) {
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
-    if (err) {
-      return done(err);
-    }
-
-    var teams = db.collection('teams');
-
-    function callback(err, res, msg) {
-      db.close();
-      return done(err, res, msg);
-    };
-
-    teams.findOne({ _id: ObjectID.createFromHexString(id) }, function(err, team) {
-      return callback(err, team);
-    });
-  });
+  return done(null, id);
 });
 
 app.get('/team/:id', team.index);
