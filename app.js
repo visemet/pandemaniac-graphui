@@ -42,11 +42,27 @@ app.configure('development', function() {
 
 app.get('/', routes.index);
 
-app.get('/register', team.register);
-app.post('/register', team.doRegister);
-app.get('/login', team.login);
-app.post('/login', passport.authenticate('local', { successRedirect: 'back'
-                                                  , failureRedirect: '/login' }));
+function restrict(req, res, next) {
+  if (req.user) {
+    return next();
+  }
+
+  res.redirect('/login');
+}
+
+function anonymous(req, res, next) {
+  if (!req.user) {
+    return next();
+  }
+
+  res.redirect('/');
+}
+
+app.get('/register', anonymous, team.register);
+app.post('/register', anonymous, team.doRegister);
+app.get('/login', anonymous, team.login);
+app.post('/login', anonymous, passport.authenticate('local', { successRedirect: 'back'
+                                                             , failureRedirect: '/login' }));
 app.get('/logout', team.logout);
 
 passport.use(new LocalStrategy(function(username, password, done) {
@@ -96,12 +112,12 @@ passport.deserializeUser(function(id, done) {
   return done(null, id);
 });
 
-app.get('/team/:id', team.index);
+app.get('/team/:id', restrict, team.index);
 
-app.get('/submit', submit.list);
-app.get('/submit/:id', submit.index);
-app.get('/submit/:id/download', submit.download);
-app.post('/submit/:id/upload', submit.upload);
+app.get('/submit', restrict, submit.list);
+app.get('/submit/:id', restrict, submit.index);
+app.get('/submit/:id/download', restrict, submit.download);
+app.post('/submit/:id/upload', restrict, submit.upload);
 
 http.createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));
