@@ -4,6 +4,7 @@
  */
 
 var express = require('express')
+  , flash = require('connect-flash')
   , http = require('http')
   , net = require('net')
   , path = require('path');
@@ -29,6 +30,7 @@ app.configure(function() {
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'keyboard cat' }));
   app.use(express.methodOverride());
+  app.use(flash());
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(app.router);

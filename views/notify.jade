@@ -1,0 +1,24 @@
+.container
+  if (error)
+    each message in error
+      .alert.alert-danger
+        button.close(type='button', data-dismiss='alert') &times;
+        | #{message}
+
+  if (warn)
+    each message in warn
+      .alert.alert-warning
+        button.close(type='button', data-dismiss='alert') &times;
+        | #{message}
+
+  if (info)
+    each message in info
+      .alert.alert-info
+        button.close(type='button', data-dismiss='alert') &times;
+        | #{message}
+
+  if (log)
+    each message in log
+      .alert.alert-success
+        button.close(type='button', data-dismiss='alert') &times;
+        | #{message}
