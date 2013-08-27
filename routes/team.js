@@ -5,9 +5,24 @@
 
 var bcrypt = require('bcrypt-nodejs')
   , MongoClient = require('mongodb').MongoClient
+  , passport = require('passport');
 
 exports.register = function(req, res) {
-  res.render('team/register', { title: 'Pandemaniac' });
+  req.flash('warn', 'Password is transmitted in plain-text!');
+
+  error = req.flash('error');
+  warn = req.flash('warn');
+  info = req.flash('info');
+  log = req.flash('log');
+
+  res.render('team/register',
+    { title: 'Pandemaniac'
+    , error: error
+    , warn: warn
+    , info: info
+    , log: log
+    }
+  );
 };
 
 exports.doRegister = function(req, res) {
@@ -37,9 +52,12 @@ exports.doRegister = function(req, res) {
         teams.insert(team, { safe: true }, function(err, docs) {
           // Check for duplicate username
           if (err && err.message.indexOf('E11000 ') !== -1) {
-            // TODO: report back to the user
+            req.flash('error', '%s is already taken.', username);
             return res.redirect('/register');
-          } else if (err) {
+          }
+
+          // Some other kind of error
+          else if (err) {
             throw err;
           }
 
@@ -48,6 +66,7 @@ exports.doRegister = function(req, res) {
               throw err;
             }
 
+            req.flash('log', 'Successfully registered as team %s.', docs[0].name);
             res.redirect('/');
           });
         });
@@ -57,11 +76,49 @@ exports.doRegister = function(req, res) {
 };
 
 exports.login = function(req, res) {
-  res.render('team/login', { title: 'Pandemaniac' });
+  req.flash('warn', 'Password is transmitted in plain-text!');
+
+  error = req.flash('error');
+  warn = req.flash('warn');
+  info = req.flash('info');
+  log = req.flash('log');
+
+  res.render('team/login',
+    { title: 'Pandemaniac'
+    , error: error
+    , warn: warn
+    , info: info
+    , log: log
+    }
+  );
+};
+
+exports.doLogin = function(req, res) {
+  passport.authenticate('local', function(err, user, info) {
+    if (err) {
+      throw err;
+    }
+
+    // Failed to authenticate
+    if (!user) {
+      req.flash('error', 'Invalid team name or password.');
+      return res.redirect('/login');
+    }
+
+    req.login(user, function(err) {
+      if (err) {
+        throw err;
+      }
+
+      req.flash('log', 'Successfully logged in.');
+      res.redirect('/');
+    });
+  })(req, res);
 };
 
 exports.logout = function(req, res) {
   req.logout();
+  req.flash('log', 'Successfully logged out.');
   res.redirect('/');
 };
 

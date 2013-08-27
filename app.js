@@ -63,9 +63,7 @@ function anonymous(req, res, next) {
 app.get('/register', anonymous, team.register);
 app.post('/register', anonymous, team.doRegister);
 app.get('/login', anonymous, team.login);
-app.post('/login', anonymous, passport.authenticate('local',
-  { successRedirect: '/', failureRedirect: '/login' }
-));
+app.post('/login', anonymous, team.doLogin);
 app.get('/logout', team.logout);
 
 passport.use(new LocalStrategy(function(username, password, done) {
