@@ -42,6 +42,15 @@ app.configure('development', function() {
   app.locals.pretty = true;
 });
 
+app.configure('production', function() {
+  app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).render('500');
+  });
+
+  app.locals.pretty = true;
+});
+
 app.get('/', routes.index);
 
 function restrict(req, res, next) {

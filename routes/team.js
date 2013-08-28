@@ -25,25 +25,25 @@ exports.register = function(req, res) {
   );
 };
 
-exports.doRegister = function(req, res) {
+exports.doRegister = function(req, res, next) {
   var username = req.body.username
     , password = req.body.password;
 
   MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
     if (err) {
-      throw err;
+      return next(err);
     }
 
     var teams = db.collection('teams');
 
     bcrypt.genSalt(10, function(err, salt) {
       if (err) {
-        throw err;
+        return next(err);
       }
 
       bcrypt.hash(password, salt, null, function(err, crypted) {
         if (err) {
-          throw err;
+          return next(err);
         }
 
         delete req.body.password;
@@ -58,12 +58,12 @@ exports.doRegister = function(req, res) {
 
           // Some other kind of error
           else if (err) {
-            throw err;
+            return next(err);
           }
 
           req.login(docs[0], function(err) {
             if (err) {
-              throw err;
+              return next(err);
             }
 
             req.flash('log', 'Successfully registered as team %s.', docs[0].name);
@@ -96,7 +96,7 @@ exports.login = function(req, res) {
 exports.doLogin = function(req, res) {
   passport.authenticate('local', function(err, user, info) {
     if (err) {
-      throw err;
+      return next(err);
     }
 
     // Failed to authenticate
@@ -107,7 +107,7 @@ exports.doLogin = function(req, res) {
 
     req.login(user, function(err) {
       if (err) {
-        throw err;
+        return next(err);
       }
 
       req.flash('log', 'Successfully logged in.');
