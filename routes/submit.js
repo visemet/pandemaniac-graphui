@@ -7,6 +7,12 @@ var fs = require('fs')
   , path = require('path')
   , lineReader = require('line-reader');
 
+var redis = require('redis')
+  , client = redis.createClient();
+
+var MongoClient = require('mongodb').MongoClient
+  , ObjectID = require('mongodb').ObjectID
+
 /*
  * GET list of submissions.
  */
@@ -31,25 +37,43 @@ exports.list = function(req, res) {
  * GET description of a submission.
  */
 
-exports.index = function(req, res) {
+exports.index = function(req, res, next) {
   var submission = req.params.id;
 
-  // TODO: check if key exists in Redis (select upload tab)
-  // TODO: check if already have submitted (disable upload)
+  var team = req.user
+    , key = submission + '+' + team;
 
-  res.render('submit/form',
-    { title: 'Pandemaniac'
-    , submission: submission
-    , selected: 'download'
+  var selected = 'download';
+
+  client.ttl(key, function(err, ttl) {
+    if (err) {
+      return next(err);
     }
-  );
+
+    // Check if key has already expired
+    if (ttl === -1) {
+      // TODO: disable upload tab
+    } else {
+      // Select upload tab
+      selected = 'upload';
+
+      // TODO: set timer value
+    }
+
+    res.render('submit/form',
+      { title: 'Pandemaniac'
+      , submission: submission
+      , selected: selected
+      }
+    );
+  });
 };
 
 /*
  * GET graph as file.
  */
 
-exports.download = function(req, res) {
+exports.download = function(req, res, next) {
   // TODO: determine which graph to serve
 
   var submission = req.params.id
@@ -57,21 +81,33 @@ exports.download = function(req, res) {
 
   var pathname = path.join('private/graphs', submission + '.txt');
 
+  // TODO: determine timeout for said graph
+
+  var timeout = 60; // one minute
+
+  var team = req.user
+    , key = submission + '+' + team;
+
   // Check that the file exists
   fs.exists(pathname, function(exists) {
-    if (exists) {
-      res.download(pathname, filename, function(err) {
+    if (!exists) {
+      return res.status(404).render('404');
+    }
+
+    res.download(pathname, filename, function(err) {
+      if (err) {
+        return next(err);
+      }
+
+      // TODO: check that has not already submitted
+
+      // Set key to expire with timeout only if does not already exist
+      client.set(key, true, 'EX', timeout, 'NX', function(err) {
         if (err) {
-          console.error(err);
-        } else {
-          // TODO: store key that expires after X time in Redis
-          //       only if it does not already exist and have not
-          //       already submitted
+          return next(err);
         }
       });
-    } else {
-      res.status(404).render('404');
-    }
+    });
   });
 };
 
