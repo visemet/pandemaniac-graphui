@@ -4,10 +4,10 @@
  */
 
 exports.index = function(req, res) {
-  error = req.flash('error');
-  warn = req.flash('warn');
-  info = req.flash('info');
-  log = req.flash('log');
+  var error = req.flash('error')
+    , warn = req.flash('warn')
+    , info = req.flash('info')
+    , log = req.flash('log');
 
   res.render('index',
     { title: 'Pandemaniac'

@@ -10,10 +10,10 @@ var bcrypt = require('bcrypt-nodejs')
 exports.register = function(req, res) {
   req.flash('warn', 'Password is transmitted in plain-text!');
 
-  error = req.flash('error');
-  warn = req.flash('warn');
-  info = req.flash('info');
-  log = req.flash('log');
+  var error = req.flash('error')
+    , warn = req.flash('warn')
+    , info = req.flash('info')
+    , log = req.flash('log');
 
   res.render('team/register',
     { title: 'Pandemaniac'
@@ -78,10 +78,10 @@ exports.doRegister = function(req, res, next) {
 exports.login = function(req, res) {
   req.flash('warn', 'Password is transmitted in plain-text!');
 
-  error = req.flash('error');
-  warn = req.flash('warn');
-  info = req.flash('info');
-  log = req.flash('log');
+  var error = req.flash('error')
+    , warn = req.flash('warn')
+    , info = req.flash('info')
+    , log = req.flash('log');
 
   res.render('team/login',
     { title: 'Pandemaniac'
