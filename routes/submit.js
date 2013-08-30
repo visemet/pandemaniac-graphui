@@ -43,7 +43,11 @@ exports.index = function(req, res, next) {
   var team = req.user
     , key = submission + '+' + team;
 
-  var selected = 'download';
+  var selected = 'download'
+    , timeout = 60 // one minute
+    , remain = 0;
+
+  // TODO: get timeout for graph
 
   client.ttl(key, function(err, ttl) {
     if (err) {
@@ -53,17 +57,32 @@ exports.index = function(req, res, next) {
     // Check if key has already expired
     if (ttl === -1) {
       // TODO: disable upload tab
+
+      // TODO check that have not already submitted
+      req.flash('info', 'Please refresh after download completes.');
     } else {
       // Select upload tab
       selected = 'upload';
 
-      // TODO: set timer value
+      // Set timer value
+      remain = ttl;
     }
+
+    var error = req.flash('error')
+      , warn = req.flash('warn')
+      , info = req.flash('info')
+      , log = req.flash('log');
 
     res.render('submit/form',
       { title: 'Pandemaniac'
       , submission: submission
       , selected: selected
+      , timeout: timeout
+      , remain: remain
+      , error: error
+      , warn: warn
+      , info: info
+      , log: log
       }
     );
   });
