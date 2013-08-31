@@ -26,11 +26,7 @@ exports.list = function(req, res) {
     , { id: '2.2.1' }
     ];
 
-  res.render('submit/dashboard',
-    { title: 'Pandemaniac'
-    , submissions: submissions
-    }
-  );
+  res.render('submit/dashboard', { submissions: submissions });
 };
 
 /*
@@ -47,6 +43,8 @@ exports.index = function(req, res, next) {
     , timeout = 60 // one minute
     , remain = 0;
 
+  var info;
+
   // TODO: get timeout for graph
 
   client.ttl(key, function(err, ttl) {
@@ -59,7 +57,7 @@ exports.index = function(req, res, next) {
       // TODO: disable upload tab
 
       // TODO check that have not already submitted
-      req.flash('info', 'Please refresh after download completes.');
+      info = [ 'Please refresh after download completes.' ];
     } else {
       // Select upload tab
       selected = 'upload';
@@ -68,21 +66,12 @@ exports.index = function(req, res, next) {
       remain = ttl;
     }
 
-    var error = req.flash('error')
-      , warn = req.flash('warn')
-      , info = req.flash('info')
-      , log = req.flash('log');
-
     res.render('submit/form',
-      { title: 'Pandemaniac'
-      , submission: submission
+      { submission: submission
       , selected: selected
       , timeout: timeout
       , remain: remain
-      , error: error
-      , warn: warn
       , info: info
-      , log: log
       }
     );
   });

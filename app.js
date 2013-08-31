@@ -33,8 +33,22 @@ app.configure(function() {
   app.use(flash());
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
+
+  // Middleware to refresh notifications
+  app.use(function(req, res, next) {
+    app.locals({
+      title: 'Pandemaniac'
+    , error: req.flash('error')
+    , warn: req.flash('warn')
+    , info: req.flash('info')
+    , log: req.flash('log')
+    });
+
+    next(null, req, res);
+  });
+
+  app.use(app.router);
 });
 
 app.configure('development', function() {

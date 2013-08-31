@@ -8,21 +8,8 @@ var bcrypt = require('bcrypt-nodejs')
   , passport = require('passport');
 
 exports.register = function(req, res) {
-  req.flash('warn', 'Password is transmitted in plain-text!');
-
-  var error = req.flash('error')
-    , warn = req.flash('warn')
-    , info = req.flash('info')
-    , log = req.flash('log');
-
-  res.render('team/register',
-    { title: 'Pandemaniac'
-    , error: error
-    , warn: warn
-    , info: info
-    , log: log
-    }
-  );
+  var warn = [ 'Password is transmitted in plain-text!' ];
+  res.render('team/register', { warn: warn });
 };
 
 exports.doRegister = function(req, res, next) {
@@ -76,21 +63,8 @@ exports.doRegister = function(req, res, next) {
 };
 
 exports.login = function(req, res) {
-  req.flash('warn', 'Password is transmitted in plain-text!');
-
-  var error = req.flash('error')
-    , warn = req.flash('warn')
-    , info = req.flash('info')
-    , log = req.flash('log');
-
-  res.render('team/login',
-    { title: 'Pandemaniac'
-    , error: error
-    , warn: warn
-    , info: info
-    , log: log
-    }
-  );
+  var warn = [ 'Password is transmitted in plain-text!' ];
+  res.render('team/login', { warn: warn });
 };
 
 exports.doLogin = function(req, res) {
@@ -123,5 +97,5 @@ exports.logout = function(req, res) {
 };
 
 exports.index = function(req, res) {
-  res.render('team/dashboard', { title: 'Pandemaniac' });
+  res.render('team/dashboard');
 };
