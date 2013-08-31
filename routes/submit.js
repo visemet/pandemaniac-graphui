@@ -156,7 +156,7 @@ exports.download = function(req, res, next) {
 exports.upload = function(req, res, next) {
   var submission = req.params.id;
 
-  function readSubmission(numLines, input, output) {
+  function readSubmission(numLines, input, output, now) {
     var lineNo = 0
       , remain = numLines
       , hadError = false
@@ -223,10 +223,28 @@ exports.upload = function(req, res, next) {
         return done();
       }
 
-      // TODO: record submission in database
+      // Record submission in database
+      MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+        if (err) {
+          return next(err);
+        }
 
-      req.flash('log', 'Successfully uploaded for %s.', submission);
-      res.redirect('/submit');
+        var submits = db.collection('submits');
+
+        var id = ObjectID.createFromHexString(req.user)
+          , submit = { team: id, graph: submission, at: now };
+
+        submits.insert(submit, { safe: true }, function(err, docs) {
+          db.close();
+
+          if (err) {
+            return next(err);
+          }
+
+          req.flash('log', 'Successfully uploaded for %s.', submission);
+          res.redirect('/submit');
+        });
+      });
     });
   };
 
@@ -276,7 +294,7 @@ exports.upload = function(req, res, next) {
             , numLines = found.minor
             , output = pathname;
 
-          readSubmission(numLines, input, output);
+          readSubmission(numLines, input, output, now);
         });
       });
     });
