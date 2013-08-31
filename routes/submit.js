@@ -5,6 +5,7 @@
 
 var fs = require('fs')
   , path = require('path')
+  , util = require('util')
   , lineReader = require('line-reader');
 
 var redis = require('redis')
@@ -119,7 +120,7 @@ exports.download = function(req, res, next) {
   });
 };
 
-exports.upload = function(req, res) {
+exports.upload = function(req, res, next) {
   var submission = req.params.id
     // TODO: validate submission
     , array = submission.split('.').map(function(num) {
@@ -129,6 +130,8 @@ exports.upload = function(req, res) {
   var major = array[0]
     , minor = array[1]
     , patch = array[2];
+
+  var hadError = false;
 
   // TODO: fail if key does not exists
 
@@ -143,51 +146,58 @@ exports.upload = function(req, res) {
 
   var inPathname = req.files.vertices.path
     , lineNo = 0
-    , remain = minor
-    , errors = [];
+    , remain = minor;
 
-  lineReader.eachLine(inPathname, function(line, last, next) {
+  lineReader.eachLine(inPathname, function(line, isLast, nextLine) {
     lineNo++;
 
     // Check that not too many lines
-    if (!last && remain === 0) {
-      errors.push({ line: lineNo, message: 'expected end of file' });
-      next(false); // stop
+    if (!isLast && remain === 1) {
+      hadError = true;
+
+      var message = util.format('Expected end of file on line %d.', lineNo);
+      req.flash('error', message);
+      return nextLine(false); // stop reading
     }
 
     // Check that not too few lines
-    else if (last && remain !== 1) {
-      errors.push({ line: lineNo, message: 'unexpected end of file' });
-      next(false); // stop
+    else if (isLast && remain !== 1) {
+      hadError = true;
+
+      var message = util.format('Unexpected end of file on line %d.', lineNo);
+      req.flash('error', message);
+      return nextLine(false); // stop reading
     }
 
-    else {
-      // Check that line is an integer
-      if (/\d+/.test(line)) {
-        // TODO: verify value does not exceed maximum
+    // Check that line is an integer
+    if (!/\d+/.test(line)) {
+      hadError = true;
 
-        // Append to output file
-        fs.appendFile(outPathname, line + '\n', function(err) {
-          if (err) {
-            console.error(err);
-          }
+      var message = util.format('Expected integer on line %d.', lineNo);
+      req.flash('error', message);
+      return nextLine(false); // stop reading
+    }
 
-          remain--;
-          next(); // continue
-        });
-      } else {
-        errors.push({ line: lineNo, message: 'expected integer' });
-        next(false); // stop
+    // TODO: verify value does not exceed maximum
+
+    // Append to output file
+    fs.appendFile(outPathname, line + '\n', function(err) {
+      if (err) {
+        return next(err);
       }
-    }
+
+      remain--;
+      nextLine(); // continue reading
+    });
   }).then(function() {
     // TODO: discard output file if had errors
     //       note that was only created if (lineNo !== 0)
+
+    if (hadError) {
+      return res.redirect('/submit/' + submission);
+    }
+
+    req.flash('log', 'Successfully uploaded for %s.', submission);
+    res.redirect('/submit');
   });
-
-  // TODO: report errors back to user
-  //       on success: redirect to /submit
-  //       on failure: redirect to /submit/id with upload tab selected
-
-  res.redirect('/submit');
 };
