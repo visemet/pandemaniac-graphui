@@ -2,9 +2,6 @@ extends ../layout
 
 block content
   .container
-    table
-      thead
-        tr: th Available
-      tbody
-        each submission, i in submissions
-          tr: td: a(href='/submit/' + submission.id) #{submission.id}
+    ul.nav.nav-pills.inline
+      each link in active
+        li: a(href='/submit/' + link.href) #{link.text}

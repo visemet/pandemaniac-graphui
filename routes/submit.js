@@ -19,15 +19,33 @@ var MongoClient = require('mongodb').MongoClient
  */
 
 exports.list = function(req, res) {
-  // TODO: get list of submissions
+  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+    if (err) {
+      return next(err);
+    }
 
-  var submissions =
-    [ { id: '2.1.1' }
-    , { id: '2.1.2' }
-    , { id: '2.2.1' }
-    ];
+    var graphs = db.collection('graphs');
 
-  res.render('submit/dashboard', { submissions: submissions });
+    var now = new Date()
+      , query = { start: { $lt: now }, end: { $gt: now } };
+
+    var active = [];
+
+    graphs.find(query).each(function(err, doc) {
+      if (err) {
+        db.close();
+        return next(err);
+      }
+
+      // Check if have exhausted cursor
+      if (doc === null) {
+        db.close();
+        return res.render('submit/dashboard', { active: active });
+      }
+
+      active.push({ href: doc.name, text: doc.name });
+    });
+  });
 };
 
 /*
