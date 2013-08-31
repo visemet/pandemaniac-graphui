@@ -55,44 +55,52 @@ exports.list = function(req, res) {
 exports.index = function(req, res, next) {
   var submission = req.params.id;
 
-  var team = req.user
-    , key = submission + '+' + team;
-
-  var selected = 'download'
-    , timeout = 60 // one minute
-    , remain = 0;
-
-  var info;
-
-  // TODO: get timeout for graph
-
-  client.ttl(key, function(err, ttl) {
+  verifyName(submission, function(err, found) {
     if (err) {
       return next(err);
     }
 
-    // Check if key has already expired
-    if (ttl === -1) {
-      // TODO: disable upload tab
-
-      // TODO check that have not already submitted
-      info = [ 'Please refresh after download completes.' ];
-    } else {
-      // Select upload tab
-      selected = 'upload';
-
-      // Set timer value
-      remain = ttl;
+    if (!found) {
+      return res.status(404).render('404');
     }
 
-    res.render('submit/form',
-      { submission: submission
-      , selected: selected
-      , timeout: timeout
-      , remain: remain
-      , info: info
+    // Get the submission timeout for the graph
+    var timeout = found.graph.timeout;
+
+    var key = submission + '+' + req.user;
+    client.ttl(key, function(err, ttl) {
+      if (err) {
+        return next(err);
       }
-    );
+
+      var selected = 'download'
+        , info
+        , remain;
+
+
+      // Check if key has already expired
+      if (ttl === -1) {
+        // TODO: disable upload tab
+
+        // TODO check that have not already submitted
+        info = [ 'Please refresh after download completes.' ];
+      } else {
+        // Select upload tab
+        selected = 'upload';
+
+        // Set timer value
+        remain = ttl;
+      }
+
+      res.render('submit/form',
+        { submission: submission
+        , selected: selected
+        , timeout: timeout
+        , remain: remain
+        , info: info
+        }
+      );
+    });
   });
 };
 
@@ -101,38 +109,45 @@ exports.index = function(req, res, next) {
  */
 
 exports.download = function(req, res, next) {
-  // TODO: determine which graph to serve
-
   var submission = req.params.id
     , filename = req.query.file;
 
-  var pathname = path.join('private/graphs', submission + '.txt');
-
-  // TODO: determine timeout for said graph
-
-  var timeout = 60; // one minute
-
-  var team = req.user
-    , key = submission + '+' + team;
-
-  // Check that the file exists
-  fs.exists(pathname, function(exists) {
-    if (!exists) {
-      return res.status(404).render('404');
+  verifyName(submission, function(err, found) {
+    if (err) {
+      return next(err);
     }
 
-    res.download(pathname, filename, function(err) {
-      if (err) {
-        return next(err);
+    if (!found) {
+      return res.status(400).render('400');
+    }
+
+    // Get which graph to serve
+    // and the submission timeout for said graph
+    var pathname = path.join('private/graphs', found.graph.file)
+      , timeout = found.graph.timeout;
+
+    var team = req.user
+      , key = submission + '+' + team;
+
+    // Check that the file exists
+    fs.exists(pathname, function(exists) {
+      if (!exists) {
+        return res.status(500).render('500');
       }
 
-      // TODO: check that has not already submitted
-
-      // Set key to expire with timeout only if does not already exist
-      client.set(key, true, 'EX', timeout, 'NX', function(err) {
+      res.download(pathname, filename, function(err) {
         if (err) {
           return next(err);
         }
+
+        // TODO: check that has not already submitted
+
+        // Set key to expire with timeout only if does not already exist
+        client.set(key, true, 'EX', timeout, 'NX', function(err) {
+          if (err) {
+            return next(err);
+          }
+        });
       });
     });
   });
@@ -256,6 +271,7 @@ function verifyName(submission, found) {
       found(null, { major: match[0]
                   , minor: match[1]
                   , patch: match[2]
+                  , graph: doc
                   }
       );
     });
