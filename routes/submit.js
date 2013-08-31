@@ -75,31 +75,61 @@ exports.index = function(req, res, next) {
 
       var selected = 'download'
         , info
+        , log
         , remain;
 
+      function render() {
+        res.render('submit/form', { submission: submission
+                                  , selected: selected
+                                  , timeout: timeout
+                                  , info: info
+                                  , log: log
+                                  , remain: remain
+                                  }
+        );
+      }
 
       // Check if key has already expired
       if (ttl === -1) {
-        // TODO: disable upload tab
+        // Check whether has already submitted
+        return MongoClient.connect('mongodb://localhost:27017/test',
+          function(err, db) {
+            if (err) {
+              return next(err);
+            }
 
-        // TODO check that have not already submitted
-        info = [ 'Please refresh after download completes.' ];
-      } else {
-        // Select upload tab
-        selected = 'upload';
+            var submits = db.collection('submits');
 
-        // Set timer value
-        remain = ttl;
+            var id = ObjectID.createFromHexString(req.user)
+              , query = { team: id, graph: submission };
+
+            submits.findOne(query, { safe: true }, function(err, submit) {
+              db.close();
+
+              if (err) {
+                return next(err);
+              }
+
+              if (!submit) {
+                // TODO: check if already downloaded before
+                info = [ 'Please refresh after download completes.' ];
+              } else {
+                log = [ 'Successfully uploaded already.' ];
+              }
+
+              render();
+            });
+          }
+        );
       }
 
-      res.render('submit/form',
-        { submission: submission
-        , selected: selected
-        , timeout: timeout
-        , remain: remain
-        , info: info
-        }
-      );
+      // Select upload tab
+      selected = 'upload';
+
+      // Set timer value
+      remain = ttl;
+
+      render();
     });
   });
 };
@@ -140,13 +170,33 @@ exports.download = function(req, res, next) {
           return next(err);
         }
 
-        // TODO: check that has not already submitted
-
-        // Set key to expire with timeout only if does not already exist
-        client.set(key, true, 'EX', timeout, 'NX', function(err) {
+        // Check whether has already submitted
+        MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
           if (err) {
             return next(err);
           }
+
+          var submits = db.collection('submits');
+
+          var id = ObjectID.createFromHexString(req.user)
+            , query = { team: id, graph: submission };
+
+          submits.findOne(query, { safe: true }, function(err, submit) {
+            db.close();
+
+            if (err) {
+              return next(err);
+            }
+
+            if (!submit) {
+              // Set key to expire with timeout only if does not already exist
+              client.set(key, true, 'EX', timeout, 'NX', function(err) {
+                if (err) {
+                  return next(err);
+                }
+              });
+            }
+          });
         });
       });
     });

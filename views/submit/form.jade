@@ -8,8 +8,11 @@ block content
     ul#tab.nav.nav-tabs
       li(class=selected === 'download' ? 'active' : '')
         a(href='#download', data-toggle='tab') Download
-      li(class=selected === 'upload' ? 'active' : '')
-        a(href='#upload', data-toggle='tab') Upload
+      if remain
+        li(class=selected === 'upload' ? 'active' : '')
+          a(href='#upload', data-toggle='tab') Upload
+      else
+        li.disabled: a Upload
 
     #tabContent.tab-content
       #download.tab-pane.fade(class=selected === 'download' ? 'active in' : '')
