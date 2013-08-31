@@ -156,33 +156,12 @@ exports.download = function(req, res, next) {
 exports.upload = function(req, res, next) {
   var submission = req.params.id;
 
-  verifyName(submission, function(err, found) {
-    if (err) {
-      return next(err);
-    }
-
-    if (!found) {
-      return res.status(400).render('400');
-    }
-
-    var remain = found.minor;
-
-    // TODO: fail if key does not exists
-
-    // TODO: compute name to use for file
-
-    var outPathname = path.join('private/uploads', submission + '.txt');
-
-    // TODO: overwrite file if it already exists?
-
-    // Read file
-    //    validate and copy to uploads directory
-
-    var inPathname = req.files.vertices.path
-      , lineNo = 0
+  function readSubmission(numLines, input, output) {
+    var lineNo = 0
+      , remain = numLines
       , hadError = false;
 
-    lineReader.eachLine(inPathname, function(line, isLast, nextLine) {
+    lineReader.eachLine(input, function(line, isLast, nextLine) {
       lineNo++;
 
       // Check that not too many lines
@@ -214,8 +193,7 @@ exports.upload = function(req, res, next) {
 
       // TODO: verify value does not exceed maximum
 
-      // Append to output file
-      fs.appendFile(outPathname, line + '\n', function(err) {
+      fs.appendFile(output, line + '\n', { mode: 0644 }, function(err) {
         if (err) {
           return next(err);
         }
@@ -231,8 +209,62 @@ exports.upload = function(req, res, next) {
         return res.redirect('/submit/' + submission);
       }
 
+      // TODO: record submission in database
+
       req.flash('log', 'Successfully uploaded for %s.', submission);
       res.redirect('/submit');
+    });
+  };
+
+  verifyName(submission, function(err, found) {
+    if (err) {
+      return next(err);
+    }
+
+    if (!found) {
+      return res.status(400).render('400');
+    }
+
+    // TODO: fail if key does not exists
+
+    MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+      if (err) {
+        return next(err);
+      }
+
+      var teams = db.collection('teams');
+
+      var id = ObjectID.createFromHexString(req.user);
+      teams.findOne({ _id: id }, function(err, team) {
+        db.close();
+
+        if (err) {
+          return next(err);
+        }
+
+        var now = new Date();
+
+        // Compute the filename for the submission
+        var dir = path.join('private/uploads', team.name)
+          , file = util.format('%s-%s.txt', submission, +now)
+          , pathname = path.join(dir, file);
+
+        fs.mkdir(dir, 0755, function(err) {
+          // Ignore errors about the directory already existing
+          if (err && err.code !== 'EEXIST') {
+            return next(err);
+          }
+
+          // Read file
+          //    validate and copy to uploads directory
+
+          var input = req.files.vertices.path
+            , numLines = found.minor
+            , output = pathname;
+
+          readSubmission(numLines, input, output);
+        });
+      });
     });
   });
 };
