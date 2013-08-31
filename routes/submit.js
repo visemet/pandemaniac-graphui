@@ -139,83 +139,125 @@ exports.download = function(req, res, next) {
 };
 
 exports.upload = function(req, res, next) {
-  var submission = req.params.id
-    // TODO: validate submission
-    , array = submission.split('.').map(function(num) {
-        return parseInt(num, 10);
-      });
+  var submission = req.params.id;
 
-  var major = array[0]
-    , minor = array[1]
-    , patch = array[2];
-
-  var hadError = false;
-
-  // TODO: fail if key does not exists
-
-  // TODO: compute name to use for file
-
-  var outPathname = path.join('private/uploads', submission + '.txt');
-
-  // TODO: overwrite file if it already exists?
-
-  // Read file
-  //    validate and copy to uploads directory
-
-  var inPathname = req.files.vertices.path
-    , lineNo = 0
-    , remain = minor;
-
-  lineReader.eachLine(inPathname, function(line, isLast, nextLine) {
-    lineNo++;
-
-    // Check that not too many lines
-    if (!isLast && remain === 1) {
-      hadError = true;
-
-      var message = util.format('Expected end of file on line %d.', lineNo);
-      req.flash('error', message);
-      return nextLine(false); // stop reading
+  verifyName(submission, function(err, found) {
+    if (err) {
+      return next(err);
     }
 
-    // Check that not too few lines
-    else if (isLast && remain !== 1) {
-      hadError = true;
-
-      var message = util.format('Unexpected end of file on line %d.', lineNo);
-      req.flash('error', message);
-      return nextLine(false); // stop reading
+    if (!found) {
+      return res.status(400).render('400');
     }
 
-    // Check that line is an integer
-    if (!/\d+/.test(line)) {
-      hadError = true;
+    var remain = found.minor;
 
-      var message = util.format('Expected integer on line %d.', lineNo);
-      req.flash('error', message);
-      return nextLine(false); // stop reading
-    }
+    // TODO: fail if key does not exists
 
-    // TODO: verify value does not exceed maximum
+    // TODO: compute name to use for file
 
-    // Append to output file
-    fs.appendFile(outPathname, line + '\n', function(err) {
-      if (err) {
-        return next(err);
+    var outPathname = path.join('private/uploads', submission + '.txt');
+
+    // TODO: overwrite file if it already exists?
+
+    // Read file
+    //    validate and copy to uploads directory
+
+    var inPathname = req.files.vertices.path
+      , lineNo = 0
+      , hadError = false;
+
+    lineReader.eachLine(inPathname, function(line, isLast, nextLine) {
+      lineNo++;
+
+      // Check that not too many lines
+      if (!isLast && remain === 1) {
+        hadError = true;
+
+        var message = util.format('Expected end of file on line %d.', lineNo);
+        req.flash('error', message);
+        return nextLine(false); // stop reading
       }
 
-      remain--;
-      nextLine(); // continue reading
-    });
-  }).then(function() {
-    // TODO: discard output file if had errors
-    //       note that was only created if (lineNo !== 0)
+      // Check that not too few lines
+      else if (isLast && remain !== 1) {
+        hadError = true;
 
-    if (hadError) {
-      return res.redirect('/submit/' + submission);
+        var message = util.format('Unexpected end of file on line %d.', lineNo);
+        req.flash('error', message);
+        return nextLine(false); // stop reading
+      }
+
+      // Check that line is an integer
+      if (!/\d+/.test(line)) {
+        hadError = true;
+
+        var message = util.format('Expected integer on line %d.', lineNo);
+        req.flash('error', message);
+        return nextLine(false); // stop reading
+      }
+
+      // TODO: verify value does not exceed maximum
+
+      // Append to output file
+      fs.appendFile(outPathname, line + '\n', function(err) {
+        if (err) {
+          return next(err);
+        }
+
+        remain--;
+        nextLine(); // continue reading
+      });
+    }).then(function() {
+      // TODO: discard output file if had errors
+      //       note that was only created if (lineNo !== 0)
+
+      if (hadError) {
+        return res.redirect('/submit/' + submission);
+      }
+
+      req.flash('log', 'Successfully uploaded for %s.', submission);
+      res.redirect('/submit');
+    });
+  });
+};
+
+function verifyName(submission, found) {
+  // Check that submission name is in a proper format
+  // and extract its semantic meaning
+  var match = /^(\d+)\.(\d+)\.(\d+)$/.exec(submission);
+
+  if (!match) {
+    return found(null, false);
+  }
+
+  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+    if (err) {
+      return found(err);
     }
 
-    req.flash('log', 'Successfully uploaded for %s.', submission);
-    res.redirect('/submit');
+    var graphs = db.collection('graphs');
+
+    var now = new Date()
+      , query = { name: submission, start: { $lt: now }, end: { $gt: now } };
+
+    graphs.findOne(query, function(err, doc) {
+      db.close();
+
+      if (err) {
+        return found(err);
+      }
+
+      // Check if any matching document exists
+      if (doc === null) {
+        return found(null, false);
+      }
+
+      found(null, { major: match[0]
+                  , minor: match[1]
+                  , patch: match[2]
+                  }
+      );
+    });
   });
 };
