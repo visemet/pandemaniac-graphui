@@ -268,9 +268,9 @@ function verifyName(submission, found) {
         return found(null, false);
       }
 
-      found(null, { major: match[0]
-                  , minor: match[1]
-                  , patch: match[2]
+      found(null, { major: +match[1]
+                  , minor: +match[2]
+                  , patch: +match[3]
                   , graph: doc
                   }
       );
