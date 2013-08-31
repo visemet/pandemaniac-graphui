@@ -159,7 +159,8 @@ exports.upload = function(req, res, next) {
   function readSubmission(numLines, input, output) {
     var lineNo = 0
       , remain = numLines
-      , hadError = false;
+      , hadError = false
+      , created = false;
 
     lineReader.eachLine(input, function(line, isLast, nextLine) {
       lineNo++;
@@ -198,15 +199,28 @@ exports.upload = function(req, res, next) {
           return next(err);
         }
 
+        created = true;
         remain--;
         nextLine(); // continue reading
       });
     }).then(function() {
-      // TODO: discard output file if had errors
-      //       note that was only created if (lineNo !== 0)
-
       if (hadError) {
-        return res.redirect('/submit/' + submission);
+        function done() {
+          res.redirect('/submit/' + submission);
+        };
+
+        // Discard invalid output file
+        if (created) {
+          return fs.unlink(output, function(err) {
+            if (err) {
+              return next(err);
+            }
+
+            done();
+          });
+        }
+
+        return done();
       }
 
       // TODO: record submission in database
