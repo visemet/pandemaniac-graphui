@@ -328,44 +328,54 @@ exports.upload = function(req, res, next) {
       return res.status(400).render('400');
     }
 
-    // TODO: fail if key does not exists
-
-    MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+    var key = submission + '+' + req.user;
+    client.exists(key, function(err, exists) {
       if (err) {
         return next(err);
       }
 
-      var teams = db.collection('teams');
+      // Check that key exists
+      if (!exists) {
+        return res.status(400).render('400');
+      }
 
-      var id = ObjectID.createFromHexString(req.user);
-      teams.findOne({ _id: id }, function(err, team) {
-        db.close();
-
+      MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
         if (err) {
           return next(err);
         }
 
-        var now = new Date();
+        var teams = db.collection('teams');
 
-        // Compute the filename for the submission
-        var dir = path.join('private/uploads', team.name)
-          , file = util.format('%s-%s.txt', submission, +now)
-          , pathname = path.join(dir, file);
+        var id = ObjectID.createFromHexString(req.user);
+        teams.findOne({ _id: id }, function(err, team) {
+          db.close();
 
-        fs.mkdir(dir, 0755, function(err) {
-          // Ignore errors about the directory already existing
-          if (err && err.code !== 'EEXIST') {
+          if (err) {
             return next(err);
           }
 
-          // Read file
-          //    validate and copy to uploads directory
+          var now = new Date();
 
-          var input = req.files.vertices.path
-            , numLines = found.minor
-            , output = pathname;
+          // Compute the filename for the submission
+          var dir = path.join('private/uploads', team.name)
+            , file = util.format('%s-%s.txt', submission, +now)
+            , pathname = path.join(dir, file);
 
-          readSubmission(numLines, input, output, now);
+          fs.mkdir(dir, 0755, function(err) {
+            // Ignore errors about the directory already existing
+            if (err && err.code !== 'EEXIST') {
+              return next(err);
+            }
+
+            // Read file
+            //    validate and copy to uploads directory
+
+            var input = req.files.vertices.path
+              , numLines = found.minor
+              , output = pathname;
+
+            readSubmission(numLines, input, output, now);
+          });
         });
       });
     });
