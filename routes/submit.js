@@ -74,62 +74,73 @@ exports.index = function(req, res, next) {
       }
 
       var selected = 'download'
+        , error
         , info
         , log
         , remain;
 
-      function render() {
-        res.render('submit/form', { submission: submission
-                                  , selected: selected
-                                  , timeout: timeout
-                                  , info: info
-                                  , log: log
-                                  , remain: remain
-                                  }
-        );
+      if (ttl !== -1) {
+        // Select upload tab
+        selected = 'upload';
+
+        // Set timer value
+        remain = ttl;
       }
 
-      // Check if key has already expired
-      if (ttl === -1) {
-        // Check whether has already submitted
-        return MongoClient.connect('mongodb://localhost:27017/test',
-          function(err, db) {
+      // Check whether has already submitted
+      MongoClient.connect('mongodb://localhost:27017/test',
+        function(err, db) {
+          if (err) {
+            return next(err);
+          }
+
+          var attempts = db.collection('attempts');
+
+          var id = ObjectID.createFromHexString(req.user)
+            , query = { team: id, graph: submission };
+
+          attempts.findOne(query, function(err, attempt) {
+            db.close();
+
             if (err) {
               return next(err);
             }
 
-            var submits = db.collection('submits');
+            // Check if has not attempted yet
+            if (!attempt) {
+              info = [ 'Please refresh after download completes.' ];
+            }
 
-            var id = ObjectID.createFromHexString(req.user)
-              , query = { team: id, graph: submission };
-
-            submits.findOne(query, { safe: true }, function(err, submit) {
-              db.close();
-
-              if (err) {
-                return next(err);
+            // ...or has already attempted
+            else if (!attempt.at) {
+              // ...but failed to submit before timeout
+              if (ttl === -1) {
+                error = [ 'Failed to submit before timeout.' ];
               }
+            }
 
-              if (!submit) {
-                // TODO: check if already downloaded before
-                info = [ 'Please refresh after download completes.' ];
-              } else {
-                log = [ 'Successfully uploaded already.' ];
-              }
+            // ...while submission time remains
+            else if (ttl !== -1) {
+                info = [ 'Already have uploaded a submission' ];
+            }
 
-              render();
-            });
-          }
-        );
-      }
+            // ...and time has expired
+            else {
+              log = [ 'Successfully attempted.' ];
+            }
 
-      // Select upload tab
-      selected = 'upload';
-
-      // Set timer value
-      remain = ttl;
-
-      render();
+            res.render('submit/form', { submission: submission
+                                      , selected: selected
+                                      , timeout: timeout
+                                      , error: error
+                                      , info: info
+                                      , log: log
+                                      , remain: remain
+                                      }
+            );
+          });
+        }
+      );
     });
   });
 };
@@ -171,33 +182,42 @@ exports.download = function(req, res, next) {
         }
 
         // Check whether has already submitted
-        MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
-          if (err) {
-            return next(err);
-          }
-
-          var submits = db.collection('submits');
-
-          var id = ObjectID.createFromHexString(req.user)
-            , query = { team: id, graph: submission };
-
-          submits.findOne(query, { safe: true }, function(err, submit) {
-            db.close();
-
+        MongoClient.connect('mongodb://localhost:27017/test',
+          function(err, db) {
             if (err) {
               return next(err);
             }
 
-            if (!submit) {
-              // Set key to expire with timeout only if does not already exist
-              client.set(key, true, 'EX', timeout, 'NX', function(err) {
+            var attempts = db.collection('attempts');
+
+            var id = ObjectID.createFromHexString(req.user)
+              , query = { team: id, graph: submission }
+              , sort = []
+              , update = { $setOnInsert: query }
+              , options = { w: 1, upsert: true, new: false };
+
+            attempts.findAndModify(query, sort, update, options,
+              function(err, attempt) {
+                db.close();
+
                 if (err) {
                   return next(err);
                 }
-              });
-            }
-          });
-        });
+
+                // Returns {} when not present, instead of null
+                if (!attempt._id) {
+                  // Set key to expire with timeout
+                  // only if does not already exist
+                  client.set(key, true, 'EX', timeout, 'NX', function(err) {
+                    if (err) {
+                      return next(err);
+                    }
+                  });
+                }
+              }
+            );
+          }
+        );
       });
     });
   });
@@ -279,12 +299,13 @@ exports.upload = function(req, res, next) {
           return next(err);
         }
 
-        var submits = db.collection('submits');
+        var attempts = db.collection('attempts');
 
         var id = ObjectID.createFromHexString(req.user)
-          , submit = { team: id, graph: submission, at: now };
+          , query = { team: id, graph: submission }
+          , update = { $push: { at: now } };
 
-        submits.insert(submit, { safe: true }, function(err, docs) {
+        attempts.update(query, update, { w: 1 }, function(err, docs) {
           db.close();
 
           if (err) {
