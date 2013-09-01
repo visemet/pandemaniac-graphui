@@ -36,7 +36,7 @@ exports.doRegister = function(req, res, next) {
         delete req.body.password;
         var team = { name: username, hash: crypted };
 
-        teams.insert(team, { safe: true }, function(err, docs) {
+        teams.insert(team, { w: 1 }, function(err, docs) {
           // Check for duplicate username
           if (err && err.message.indexOf('E11000 ') !== -1) {
             req.flash('error', '%s is already taken.', username);
