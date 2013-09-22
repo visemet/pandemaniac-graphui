@@ -12,6 +12,7 @@ var express = require('express')
 var routes = require('./routes')
   , submit = require('./routes/submit')
   , team = require('./routes/team')
+  , graph = require('./routes/graph');
 
 var bcrypt = require('bcrypt-nodejs')
   , MongoClient = require('mongodb').MongoClient
@@ -142,6 +143,9 @@ app.get('/submit', restrict, submit.list);
 app.get('/submit/:id', restrict, submit.index);
 app.get('/submit/:id/download', restrict, submit.download);
 app.post('/submit/:id/upload', restrict, submit.upload);
+
+app.get('/api/v1/graph/:id/structure', graph.structure);
+app.get('/api/v1/graph/:id/model', graph.model);
 
 http.createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));
