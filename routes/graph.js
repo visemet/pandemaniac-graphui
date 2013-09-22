@@ -10,6 +10,14 @@ var MongoClient = require('mongodb').MongoClient
   , ObjectID = require('mongodb').ObjectID
 
 /*
+ * GET description of a simulation.
+ */
+
+exports.index = function(req, res, next) {
+  res.render('graph/graph');
+};
+
+/*
  * GET structure of a simulation.
  */
 exports.structure = function(req, res, next) {

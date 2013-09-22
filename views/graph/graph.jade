@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+  #chart.container
+  .container
+    .input-prepend.input-append
+      button#step-backward.btn.btn-info(type='button')
+        i.icon-step-backward.icon-white
+      input#step-no.input-mini(type='text', value='0')
+      button#play.btn.btn-info(type='button')
+        i.icon-play.icon-white
+      button#step-forward.btn.btn-info(type='button')
+        i.icon-step-forward.icon-white
+
+append js
+  script(src='/js/d3.v3.min.js')
+  script(src='/js/render-graph.js')
