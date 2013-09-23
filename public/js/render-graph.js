@@ -84,91 +84,85 @@ $(function() {
       }
     };
 
-    // TODO: get diff from the server
-    var steps = {
-      0: { 1: [ '1', '2', '3' ], 2: [ '4', '5', '6' ] }
-    , 1: { 1: [ '7', '8', '9' ], 2: [ '10', '11', '12' ] }
-    , 2: { 1: [ '13', '14', '15', '20', '21', '22' ]
-         , 2: [ '16', '17', '18', '19', '23', '24' ]
-         }
-    };
+    // Get steps of simulation from the server
+    $.getJSON('/api/v1/graph/' + id + '/model', function(steps) {
+      var applied = -1;
 
-    var applied = -1;
+      function step(size) {
+        var stepNo = +$('#step-no').val()
+          , remain;
 
-    function step(size) {
-      var stepNo = +$('#step-no').val()
-        , remain;
-
-      // Starting from step that was already applied,
-      // ...or a decrement
-      if (stepNo < applied || size < 0) {
-        computeNodes(refs);
-        remain = stepNo + size;
-        applied = -1;
-        stepNo = 0;
-      }
-
-      // Otherwise, an increment
-      else {
-        remain = size;
-      }
-
-      while (remain > 0) {
-        applyDiff(refs, steps[stepNo]);
-        applied++;
-        stepNo++;
-        remain--;
-      }
-
-      node.data(nodes).style('fill', function(d) {
-        if (d.team) {
-          return color(d.team);
+        // Starting from step that was already applied,
+        // ...or a decrement
+        if (stepNo < applied || size < 0) {
+          computeNodes(refs);
+          remain = stepNo + size;
+          applied = -1;
+          stepNo = 0;
         }
 
-        return 'gray';
-      });
-
-      $('#step-no').val(stepNo);
-    };
-
-    function run(delay) {
-      var simulation = null;
-
-      $('#play').click(function() {
-        // Prevent simultaneous updates
-        if (simulation) {
-          clearInterval(simulation);
+        // Otherwise, an increment
+        else {
+          remain = size;
         }
 
-        simulation = setInterval(function() {
-          var stepNo = +$('#step-no').val();
+        while (remain > 0) {
+          applyDiff(refs, steps[stepNo]);
+          applied++;
+          stepNo++;
+          remain--;
+        }
 
-          // Check when reached end of simulation
-          if (!steps.hasOwnProperty(stepNo)) {
-            return clearInterval(simulation);
+        node.data(nodes).style('fill', function(d) {
+          if (d.team) {
+            return color(d.team);
+          }
+
+          return 'gray';
+        });
+
+        $('#step-no').val(stepNo);
+      };
+
+      function run(delay) {
+        var simulation = null;
+
+        $('#play').click(function() {
+          // Prevent simultaneous updates
+          if (simulation) {
+            clearInterval(simulation);
+          }
+
+          simulation = setInterval(function() {
+            var stepNo = +$('#step-no').val();
+
+            // Check when reached end of simulation
+            if (!steps.hasOwnProperty(stepNo)) {
+              return clearInterval(simulation);
+            }
+
+            step(1);
+          }, delay);
+        });
+
+        $('#step-forward').click(function() {
+          if (simulation) {
+            clearInterval(simulation);
           }
 
           step(1);
-        }, delay);
-      });
+        });
 
-      $('#step-forward').click(function() {
-        if (simulation) {
-          clearInterval(simulation);
-        }
+        $('#step-backward').click(function() {
+          if (simulation) {
+            clearInterval(simulation);
+          }
 
-        step(1);
-      });
+          step(-1);
+        });
+      };
 
-      $('#step-backward').click(function() {
-        if (simulation) {
-          clearInterval(simulation);
-        }
-
-        step(-1);
-      });
-    };
-
-    run(1000);
+      run(1000);
+    });
   });
 });
