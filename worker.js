@@ -42,7 +42,7 @@ fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
       .links(links)
       .size([ width, height ]);
 
-  var EPSILON = 0.05;
+  var EPSILON = 0;
 
   force.start();
 
