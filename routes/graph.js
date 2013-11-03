@@ -100,7 +100,7 @@ exports.model = function(req, res, next) {
 
       db.close();
 
-      var pathname = path.join('private/graphs', doc.file);
+      var pathname = path.join('private/runs', doc.file);
 
       fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
         if (err) {
