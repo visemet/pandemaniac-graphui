@@ -146,6 +146,7 @@ app.post('/submit/:id/upload', restrict, submit.upload);
 
 app.get('/graph/:id', graph.index);
 app.get('/api/v1/graph/:id/structure', graph.structure);
+app.get('/api/v1/graph/:id/layout', graph.layout);
 app.get('/api/v1/graph/:id/model', graph.model);
 
 http.createServer(app).listen(app.get('port'), function() {
