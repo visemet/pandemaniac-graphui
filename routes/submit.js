@@ -11,8 +11,7 @@ var fs = require('fs')
 var redis = require('redis')
   , client = redis.createClient();
 
-var MongoClient = require('mongodb').MongoClient
-  , ObjectID = require('mongodb').ObjectID
+var MongoClient = require('mongodb').MongoClient;
 
 /*
  * GET list of submissions.
@@ -96,8 +95,7 @@ exports.index = function(req, res, next) {
 
           var attempts = db.collection('attempts');
 
-          var id = ObjectID.createFromHexString(req.user)
-            , query = { team: id, graph: submission };
+          var query = { team: req.user, graph: submission };
 
           attempts.findOne(query, function(err, attempt) {
             db.close();
@@ -190,8 +188,7 @@ exports.download = function(req, res, next) {
 
             var attempts = db.collection('attempts');
 
-            var id = ObjectID.createFromHexString(req.user)
-              , query = { team: id, graph: submission }
+            var query = { team: team, graph: submission }
               , sort = []
               , update = { $setOnInsert: query }
               , options = { w: 1, upsert: true, new: false };
@@ -301,8 +298,7 @@ exports.upload = function(req, res, next) {
 
         var attempts = db.collection('attempts');
 
-        var id = ObjectID.createFromHexString(req.user)
-          , query = { team: id, graph: submission }
+        var query = { team: req.user, graph: submission }
           , update = { $push: { at: now } };
 
         attempts.update(query, update, { w: 1 }, function(err, docs) {
@@ -346,8 +342,7 @@ exports.upload = function(req, res, next) {
 
         var teams = db.collection('teams');
 
-        var id = ObjectID.createFromHexString(req.user);
-        teams.findOne({ _id: id }, function(err, team) {
+        teams.findOne({ name: req.user }, function(err, team) {
           db.close();
 
           if (err) {

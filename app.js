@@ -130,11 +130,11 @@ passport.use(new LocalStrategy(function(username, password, done) {
 }));
 
 passport.serializeUser(function(user, done) {
-  done(null, user._id.toHexString());
+  done(null, user.name);
 });
 
-passport.deserializeUser(function(id, done) {
-  done(null, id);
+passport.deserializeUser(function(username, done) {
+  done(null, username);
 });
 
 app.get('/team/:id', restrict, team.index);
