@@ -104,8 +104,15 @@ $(function() {
         if (diff) {
           $.each(diff, function(key, values) {
             $.each(values, function(i, value) {
+              // Subtract nodes that were taken
+              var old = refs[value].team ? refs[value].team : '_uncolored';
+              items[old].score -= 1;
+
               refs[value].team = key;
             });
+
+            // Add new nodes reached
+            items[key].score += values.length;
           });
         }
       };
@@ -118,13 +125,17 @@ $(function() {
         });
 
         // Set up the legend
-        items = { _uncolored: { color: 'gray', score: nodes.length } };
+        function computeItems() {
+          items = { _uncolored: { color: 'gray', score: nodes.length } };
 
-        $.each(steps['0'], function(key, values) {
-          items[key] = { color: colors[key], score: 0 };
-        });
+          $.each(steps['0'], function(key, values) {
+            items[key] = { color: colors[key], score: 0 };
+          });
+        };
 
-        var text = legend.selectAll('text')
+        computeItems();
+
+        legend.selectAll('text')
             .data(d3.entries(items), function(d) { return d.key; })
             .enter().append('text')
             .attr('x', '2em')
@@ -151,6 +162,7 @@ $(function() {
           // ...or a decrement
           if (stepNo < applied || size < 0) {
             computeNodes(refs);
+            computeItems();
             remain = stepNo + size;
             applied = -1;
             stepNo = 0;
@@ -177,6 +189,12 @@ $(function() {
 
             return 'gray';
           });
+
+          legend.selectAll('text')
+              .data(d3.entries(items), function(d) { return d.key; })
+              .text(function(d) {
+                return d.key + ' - ' + d.value.score;
+              });
 
           $('#step-no').val(stepNo);
         };
