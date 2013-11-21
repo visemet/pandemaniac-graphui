@@ -77,6 +77,11 @@ $(function() {
           .style('stroke', 'gray')
           .style('opacity', 0.1);
 
+      var legend = d3.select('#legend')
+          .append('svg:svg')
+            .attr('width', 200)
+            .attr('height', 200);
+
       var node = vis.selectAll('circle.node')
           .data(nodes)
           .enter().append('svg:circle')
@@ -92,11 +97,14 @@ $(function() {
       var colors = {}
         , num_colors = 0;
 
+      var items = {}
+        , padding = 5;
+
       function applyDiff(refs, diff) {
         if (diff) {
           $.each(diff, function(key, values) {
             $.each(values, function(i, value) {
-              refs[value].team = colors[key];
+              refs[value].team = key;
             });
           });
         }
@@ -106,8 +114,32 @@ $(function() {
       $.getJSON('/api/v1/graph/' + id + '/model', function(steps) {
         $.each(steps['0'], function(key, values) {
           num_colors++;
-          colors[key] = num_colors;
+          colors[key] = color(num_colors);
         });
+
+        // Set up the legend
+        items = { _uncolored: { color: 'gray', score: nodes.length } };
+
+        $.each(steps['0'], function(key, values) {
+          items[key] = { color: colors[key], score: 0 };
+        });
+
+        var text = legend.selectAll('text')
+            .data(d3.entries(items), function(d) { return d.key; })
+            .enter().append('text')
+            .attr('x', '2em')
+            .attr('y', function(d, i) { return padding + i + 'em'; })
+            .text(function(d) {
+              return d.key + ' - ' + d.value.score;
+            });
+
+        legend.selectAll('circle')
+            .data(d3.entries(items), function(d) { return d.key; })
+            .enter().append('circle')
+            .attr('cx', '1em')
+            .attr('cy', function(d, i) { return padding + i - 0.3 + 'em'; })
+            .attr('r', '0.4em')
+            .style('fill', function(d) { return d.value.color });
 
         var applied = -1;
 
@@ -139,12 +171,12 @@ $(function() {
           }
 
           node.data(nodes).style('fill', function(d) {
-              if (d.team) {
-                return color(d.team);
-              }
+            if (d.team) {
+              return colors[d.team];
+            }
 
-              return 'gray';
-            });
+            return 'gray';
+          });
 
           $('#step-no').val(stepNo);
         };
