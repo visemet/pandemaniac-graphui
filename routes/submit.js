@@ -352,25 +352,18 @@ exports.upload = function(req, res, next) {
           var now = new Date();
 
           // Compute the filename for the submission
-          var dir = path.join('private/uploads', team.name)
+          var dir = path.join('private', 'uploads', team.name)
             , file = util.format('%s-%s.txt', submission, +now)
             , pathname = path.join(dir, file);
 
-          fs.mkdir(dir, 0755, function(err) {
-            // Ignore errors about the directory already existing
-            if (err && err.code !== 'EEXIST') {
-              return next(err);
-            }
+          // Read file
+          //    validate and copy to uploads directory
 
-            // Read file
-            //    validate and copy to uploads directory
+          var input = req.files.vertices.path
+            , numLines = found.minor
+            , output = pathname;
 
-            var input = req.files.vertices.path
-              , numLines = found.minor
-              , output = pathname;
-
-            readSubmission(numLines, input, output, now);
-          });
+          readSubmission(numLines, input, output, now);
         });
       });
     });
