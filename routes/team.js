@@ -3,9 +3,36 @@
  * Module dependencies.
  */
 
+var fs = require('fs')
+  , path = require('path');
+
 var bcrypt = require('bcrypt-nodejs')
   , MongoClient = require('mongodb').MongoClient
   , passport = require('passport');
+
+/*
+ * Constructs a team document of the following form.
+ *   { name: ..., hash: ... }
+ *
+ * callback = function(error, result)
+ */
+function makeTeam(username, password, callback) {
+  bcrypt.genSalt(10, function(err, salt) {
+    if (err) {
+      return callback(err, undefined);
+    }
+
+    bcrypt.hash(password, salt, null, function(err, crypted) {
+      if (err) {
+        return callback(err, undefined);
+      }
+
+      var team = { name: username, hash: crypted };
+
+      return callback(null, team);
+    });
+  });
+};
 
 exports.register = function(req, res) {
   var warn = [ 'Password is transmitted in plain-text!' ];
@@ -16,46 +43,56 @@ exports.doRegister = function(req, res, next) {
   var username = req.body.username
     , password = req.body.password;
 
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  delete req.body.password;
+
+  if (!/^\w+$/.test(username)) {
+    req.flash('error', 'Team name must contain only alphanumeric characters')
+    return res.redirect('/register');
+  }
+
+  makeTeam(username, password, function(err, team) {
     if (err) {
       return next(err);
     }
 
-    var teams = db.collection('teams');
+    function callback(err) {
+      db.close();
+      return next(err);
+    };
 
-    bcrypt.genSalt(10, function(err, salt) {
+    MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
       if (err) {
-        return next(err);
+        return callback(err);
       }
 
-      bcrypt.hash(password, salt, null, function(err, crypted) {
-        if (err) {
-          return next(err);
+      var teams = db.collection('teams');
+
+      teams.insert(team, { w: 1 }, function(err, docs) {
+        // Check for duplicate username
+        if (err && err.message.indexOf('E11000 ') !== -1) {
+          req.flash('error', 'Team %s is already taken.', username);
+          return res.redirect('/register');
         }
 
-        delete req.body.password;
-        var team = { name: username, hash: crypted };
+        // Some other kind of error
+        else if (err) {
+          return callback(err);
+        }
 
-        teams.insert(team, { w: 1 }, function(err, docs) {
-          // Check for duplicate username
-          if (err && err.message.indexOf('E11000 ') !== -1) {
-            req.flash('error', '%s is already taken.', username);
-            return res.redirect('/register');
+        // Make directory for submissions
+        var dir = path.join('private', 'uploads', team.name);
+
+        // TODO: handle case where inserting team into database
+        //       succeeds, but creating folder fails
+        fs.mkdirSync(dir, 0755);
+
+        req.login(docs[0], function(err) {
+          if (err) {
+            return callback(err);
           }
 
-          // Some other kind of error
-          else if (err) {
-            return next(err);
-          }
-
-          req.login(docs[0], function(err) {
-            if (err) {
-              return next(err);
-            }
-
-            req.flash('log', 'Successfully registered as team %s.', docs[0].name);
-            res.redirect('/');
-          });
+          req.flash('log', 'Successfully registered as team %s.', docs[0].name);
+          res.redirect('/');
         });
       });
     });
