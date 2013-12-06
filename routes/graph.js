@@ -59,7 +59,8 @@ function findAllGraphs(graphs, next) {
 };
 
 function findAllRuns(runs, next) {
-  runs.aggregate([{ $unwind: '$teams' }], next);
+  // runs.aggregate([{ $unwind: '$teams' }], next);
+  runs.find({}).each(next);
 };
 
 /*
@@ -95,55 +96,56 @@ exports.list = function(req, res, next) {
         var categories = value.categories
           , graphs = value.graphs;
 
+        var invTeams = {};
+        teams.forEach(function(value, index) {
+          invTeams[value] = index;
+        });
+
+        var invGraphs = {};
+        graphs.forEach(function(value, index) {
+          invGraphs[value] = index;
+        });
+
+        var matrix = [];
+
+        // Initialize empty matrix
+        // number of teams by number of graphs
+        teams.forEach(function() {
+          var row = [];
+
+          graphs.forEach(function() {
+            row.push(null);
+          });
+
+          matrix.push(row);
+        });
+
         // Iterate through all runs, unwound by team
-        findAllRuns(runs, function(err, runs) {
+        findAllRuns(runs, function(err, run) {
           if (err) {
             return doNext(err);
           }
 
-          db.close();
+          if (!run) {
+            db.close();
+            return res.render('graph/dashboard', { matrix: matrix
+                                                 , teams: teams
+                                                 , categories: categories
+                                                 , graphs: graphs });
+          }
 
-          var invTeams = {};
-          teams.forEach(function(value, index) {
-            invTeams[value] = index;
-          });
-
-          var invGraphs = {};
-          graphs.forEach(function(value, index) {
-            invGraphs[value] = index;
-          });
-
-          var matrix = [];
-
-          // Initialize empty matrix
-          // number of teams by number of graphs
-          teams.forEach(function() {
-            var row = [];
-
-            graphs.forEach(function() {
-              row.push(null);
-            });
-
-            matrix.push(row);
-          });
-
-          runs.forEach(function(doc) {
-            var i = invTeams[doc.teams];
-            var j = invGraphs[doc.graph];
+          var j = invGraphs[run.graph];
+          run.teams.forEach(function(team) {
+            var i = invTeams[team];
 
             if (i !== undefined && j !== undefined) {
               if (!matrix[i][j]) {
                 matrix[i][j] = [];
               }
 
-              matrix[i][j].push(doc._id);
+              matrix[i][j].push({ id: run._id, teams: run.teams });
             }
           });
-
-          res.render('graph/dashboard', { matrix: matrix
-                                        , teams: teams
-                                        , categories: categories
-                                        , graphs: graphs });
         });
       });
     });

@@ -23,4 +23,10 @@ block content
                 each entry, k in col
                   if k !== 0
                     br
-                  a(href='graph/' + entry) View
+                  a(href='graph/' + entry.id,
+                    data-toggle='popover',
+                    data-placement='top',
+                    data-content=entry.teams.join(' ')) View
+
+append js
+  script(src='/js/load-tooltips.js')
