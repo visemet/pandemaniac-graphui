@@ -155,7 +155,7 @@ exports.structure = function(req, res, next) {
       return next(err);
     }
 
-    var attempts = db.collection('attempts')
+    var runs = db.collection('runs')
       , query;
 
     try {
@@ -164,7 +164,7 @@ exports.structure = function(req, res, next) {
       return res.json(404, { error: 'invalid graph' });
     }
 
-    attempts.findOne(query, function(err, doc) {
+    runs.findOne(query, function(err, doc) {
       if (err) {
         return next(err);
       }
@@ -207,7 +207,7 @@ exports.layout = function(req, res, next) {
       return next(err);
     }
 
-    var attempts = db.collection('attempts')
+    var runs = db.collection('runs')
       , query;
 
     try {
@@ -216,7 +216,7 @@ exports.layout = function(req, res, next) {
       return res.json(404, { error: 'invalid graph' });
     }
 
-    attempts.findOne(query, function(err, doc) {
+    runs.findOne(query, function(err, doc) {
       if (err) {
         return next(err);
       }
@@ -259,7 +259,7 @@ exports.model = function(req, res, next) {
       return next(err);
     }
 
-    var attempts = db.collection('attempts')
+    var runs = db.collection('runs')
       , query;
 
     try {
@@ -268,7 +268,7 @@ exports.model = function(req, res, next) {
       return res.json(404, { error: 'invalid graph' });
     }
 
-    attempts.findOne(query, function(err, doc) {
+    runs.findOne(query, function(err, doc) {
       if (err) {
         return next(err);
       }
