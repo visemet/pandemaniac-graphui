@@ -6,6 +6,11 @@ block content
       thead
         tr
           th
+          each category in categories
+            each value, key in category
+              th(colspan=value.length)= key
+        tr
+          th
           for graph in graphs
             th= graph
       tbody

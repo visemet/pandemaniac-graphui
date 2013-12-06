@@ -35,20 +35,26 @@ function findAllTeams(teams, next) {
 };
 
 function findAllGraphs(graphs, next) {
-  var res = [];
+  var group = { $group: { _id: '$category', graph: { $push: '$name' } } }
+    , sort = { $sort : { '_id' : 1 } };
 
-  // TODO: group by category
-  graphs.find({}, { sort: 'name' }).each(function(err, doc) {
+  graphs.aggregate([ group, sort ], function(err, res) {
     if (err) {
       return next(err);
     }
 
-    // Check if have exhausted cursor
-    if (doc === null) {
-      return next(null, res);
-    }
+    var categories = []
+      , graphs = [];
 
-    res.push(doc.name);
+    res.forEach(function(value) {
+      var category = {};
+      category[value._id] = value.graph;
+
+      categories.push(category);
+      graphs.push.apply(graphs, value.graph)
+    });
+
+    return next(null, { categories: categories, graphs: graphs });
   });
 };
 
@@ -81,10 +87,13 @@ exports.list = function(req, res, next) {
       }
 
       // Get all graphs, grouped by category
-      findAllGraphs(graphs, function(err, graphs) {
+      findAllGraphs(graphs, function(err, value) {
         if (err) {
           doNext(err);
         }
+
+        var categories = value.categories
+          , graphs = value.graphs;
 
         // Iterate through all runs, unwound by team
         findAllRuns(runs, function(err, runs) {
@@ -125,6 +134,7 @@ exports.list = function(req, res, next) {
 
           res.render('graph/dashboard', { matrix: matrix
                                         , teams: teams
+                                        , categories: categories
                                         , graphs: graphs });
         });
       });
