@@ -129,7 +129,9 @@ exports.list = function(req, res, next) {
             var i = invTeams[doc.teams];
             var j = invGraphs[doc.graph];
 
-            matrix[i][j] = doc._id;
+            if (i !== undefined && j !== undefined) {
+              matrix[i][j] = doc._id;
+            }
           });
 
           res.render('graph/dashboard', { matrix: matrix
