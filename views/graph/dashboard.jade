@@ -1,0 +1,18 @@
+extends ../layout
+
+block content
+  .container
+    table.table.table-striped.table-bordered
+      thead
+        tr
+          th
+          for graph in graphs
+            th= graph
+      tbody
+      each row, i in matrix
+        tr
+          td= teams[i]
+          each col, j in row
+            td
+              if col
+                a(href='graph/' + col) View
