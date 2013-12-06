@@ -89,7 +89,7 @@ exports.list = function(req, res, next) {
       // Get all graphs, grouped by category
       findAllGraphs(graphs, function(err, value) {
         if (err) {
-          doNext(err);
+          return doNext(err);
         }
 
         var categories = value.categories
@@ -98,8 +98,10 @@ exports.list = function(req, res, next) {
         // Iterate through all runs, unwound by team
         findAllRuns(runs, function(err, runs) {
           if (err) {
-            doNext(err);
+            return doNext(err);
           }
+
+          db.close();
 
           var invTeams = {};
           teams.forEach(function(value, index) {
@@ -130,7 +132,11 @@ exports.list = function(req, res, next) {
             var j = invGraphs[doc.graph];
 
             if (i !== undefined && j !== undefined) {
-              matrix[i][j] = doc._id;
+              if (!matrix[i][j]) {
+                matrix[i][j] = [];
+              }
+
+              matrix[i][j].push(doc._id);
             }
           });
 
