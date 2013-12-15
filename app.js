@@ -144,6 +144,7 @@ app.get('/submit/:id', restrict, submit.index);
 app.get('/submit/:id/download', restrict, submit.download);
 app.post('/submit/:id/upload', restrict, submit.upload);
 
+app.get('/graph', graph.list);
 app.get('/graph/:id', graph.index);
 app.get('/api/v1/graph/:id/structure', graph.structure);
 app.get('/api/v1/graph/:id/layout', graph.layout);
