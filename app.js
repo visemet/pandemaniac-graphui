@@ -15,9 +15,10 @@ var routes = require('./routes')
   , graph = require('./routes/graph');
 
 var bcrypt = require('bcrypt-nodejs')
-  , MongoClient = require('mongodb').MongoClient
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy;
+
+var mongo = require('./config/mongo');
 
 var app = express();
 
@@ -96,39 +97,34 @@ app.post('/login', anonymous, team.doLogin);
 app.get('/logout', team.logout);
 
 passport.use(new LocalStrategy(function(username, password, done) {
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return done(err);
     }
 
     var teams = db.collection('teams');
 
-    function callback(err, res, msg) {
-      db.close();
-      done(err, res, msg);
-    };
-
     teams.findOne({ name: username }, function(err, team) {
       if (err) {
-        return callback(err);
+        return done(err);
       }
 
       // Check that team exists
       if (!team) {
-        return callback(null, false, { message: 'Invalid username.' });
+        return done(null, false, { message: 'Invalid username.' });
       }
 
       // Check that password matches
       bcrypt.compare(password, team.hash, function(err, auth) {
         if (err) {
-          return callback(err);
+          return done(err);
         }
 
         if (!auth) {
-          return callback(null, false, { message: 'Invalid password.' });
+          return done(null, false, { message: 'Invalid password.' });
         }
 
-        callback(null, team);
+        done(null, team);
       });
     });
   });

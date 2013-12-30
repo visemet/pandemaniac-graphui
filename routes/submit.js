@@ -11,14 +11,14 @@ var fs = require('fs')
 var redis = require('redis')
   , client = redis.createClient();
 
-var MongoClient = require('mongodb').MongoClient;
+var mongo = require('../config/mongo');
 
 /*
  * GET list of submissions.
  */
 
 exports.list = function(req, res) {
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return next(err);
     }
@@ -32,13 +32,11 @@ exports.list = function(req, res) {
 
     graphs.find(query).each(function(err, doc) {
       if (err) {
-        db.close();
         return next(err);
       }
 
       // Check if have exhausted cursor
       if (doc === null) {
-        db.close();
         return res.render('submit/dashboard', { active: active });
       }
 
@@ -87,58 +85,54 @@ exports.index = function(req, res, next) {
       }
 
       // Check whether has already submitted
-      MongoClient.connect('mongodb://localhost:27017/test',
-        function(err, db) {
+      mongo.connect(function(err, db) {
+        if (err) {
+          return next(err);
+        }
+
+        var attempts = db.collection('attempts');
+
+        var query = { team: req.user, graph: submission };
+
+        attempts.findOne(query, function(err, attempt) {
           if (err) {
             return next(err);
           }
 
-          var attempts = db.collection('attempts');
+          // Check if has not attempted yet
+          if (!attempt) {
+            info = [ 'Please refresh after download completes.' ];
+          }
 
-          var query = { team: req.user, graph: submission };
-
-          attempts.findOne(query, function(err, attempt) {
-            db.close();
-
-            if (err) {
-              return next(err);
+          // ...or has already attempted
+          else if (!attempt.at) {
+            // ...but failed to submit before timeout
+            if (ttl === -1) {
+              error = [ 'Failed to submit before timeout.' ];
             }
+          }
 
-            // Check if has not attempted yet
-            if (!attempt) {
-              info = [ 'Please refresh after download completes.' ];
-            }
+          // ...while submission time remains
+          else if (ttl !== -1) {
+              info = [ 'Already have uploaded a submission' ];
+          }
 
-            // ...or has already attempted
-            else if (!attempt.at) {
-              // ...but failed to submit before timeout
-              if (ttl === -1) {
-                error = [ 'Failed to submit before timeout.' ];
-              }
-            }
+          // ...and time has expired
+          else {
+            log = [ 'Successfully attempted.' ];
+          }
 
-            // ...while submission time remains
-            else if (ttl !== -1) {
-                info = [ 'Already have uploaded a submission' ];
-            }
-
-            // ...and time has expired
-            else {
-              log = [ 'Successfully attempted.' ];
-            }
-
-            res.render('submit/form', { submission: submission
-                                      , selected: selected
-                                      , timeout: timeout
-                                      , error: error
-                                      , info: info
-                                      , log: log
-                                      , remain: remain
-                                      }
-            );
-          });
-        }
-      );
+          res.render('submit/form', { submission: submission
+                                    , selected: selected
+                                    , timeout: timeout
+                                    , error: error
+                                    , info: info
+                                    , log: log
+                                    , remain: remain
+                                    }
+          );
+        });
+      });
     });
   });
 };
@@ -180,39 +174,35 @@ exports.download = function(req, res, next) {
         }
 
         // Check whether has already submitted
-        MongoClient.connect('mongodb://localhost:27017/test',
-          function(err, db) {
-            if (err) {
-              return next(err);
-            }
+        mongo.connect(function(err, db) {
+          if (err) {
+            return next(err);
+          }
 
-            var attempts = db.collection('attempts');
+          var attempts = db.collection('attempts');
 
-            var query = { team: team, graph: submission }
-              , sort = []
-              , update = { $setOnInsert: query }
-              , options = { w: 1, upsert: true, new: false };
+          var query = { team: team, graph: submission }
+            , sort = []
+            , update = { $setOnInsert: query }
+            , options = { w: 1, upsert: true, new: false };
 
-            attempts.findAndModify(query, sort, update, options,
-              function(err, attempt) {
-                db.close();
-
-                if (err) {
-                  return next(err);
-                }
-
-                // Returns {} when not present, instead of null
-                if (!attempt._id) {
-                  // Set key to expire with timeout
-                  // only if does not already exist
-                  client.set(key, true, 'EX', timeout, 'NX', function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                  });
-                }
+          attempts.findAndModify(query, sort, update, options,
+            function(err, attempt) {
+              if (err) {
+                return next(err);
               }
-            );
+
+              // Returns {} when not present, instead of null
+              if (!attempt._id) {
+                // Set key to expire with timeout
+                // only if does not already exist
+                client.set(key, true, 'EX', timeout, 'NX', function(err) {
+                  if (err) {
+                    return next(err);
+                  }
+                });
+              }
+            });
           }
         );
       });
@@ -291,7 +281,7 @@ exports.upload = function(req, res, next) {
       }
 
       // Record submission in database
-      MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+      mongo.connect(function(err, db) {
         if (err) {
           return next(err);
         }
@@ -302,8 +292,6 @@ exports.upload = function(req, res, next) {
           , update = { $push: { at: now } };
 
         attempts.update(query, update, { w: 1 }, function(err, docs) {
-          db.close();
-
           if (err) {
             return next(err);
           }
@@ -335,7 +323,7 @@ exports.upload = function(req, res, next) {
         return res.status(400).render('400');
       }
 
-      MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+      mongo.connect(function(err, db) {
         if (err) {
           return next(err);
         }
@@ -343,8 +331,6 @@ exports.upload = function(req, res, next) {
         var teams = db.collection('teams');
 
         teams.findOne({ name: req.user }, function(err, team) {
-          db.close();
-
           if (err) {
             return next(err);
           }
@@ -379,7 +365,7 @@ function verifyName(submission, found) {
     return found(null, false);
   }
 
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return found(err);
     }
@@ -390,8 +376,6 @@ function verifyName(submission, found) {
       , query = { name: submission, start: { $lt: now }, end: { $gt: now } };
 
     graphs.findOne(query, function(err, doc) {
-      db.close();
-
       if (err) {
         return found(err);
       }

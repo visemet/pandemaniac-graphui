@@ -6,7 +6,7 @@
 var fs = require('fs')
   , path = require('path');
 
-var MongoClient = require('mongodb').MongoClient
+var mongo = require('../config/mongo')
   , ObjectID = require('mongodb').ObjectID
 
 /*
@@ -67,7 +67,7 @@ function findAllRuns(runs, next) {
  * GET listing of simulations.
  */
 exports.list = function(req, res, next) {
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return next(err);
     }
@@ -76,21 +76,16 @@ exports.list = function(req, res, next) {
       , graphs = db.collection('graphs')
       , runs = db.collection('runs');
 
-    function doNext(err) {
-      db.close();
-      next(err);
-    };
-
     // Get all teams
     findAllTeams(teams, function(err, teams) {
       if (err) {
-        return doNext(err);
+        return next(err);
       }
 
       // Get all graphs, grouped by category
       findAllGraphs(graphs, function(err, value) {
         if (err) {
-          return doNext(err);
+          return next(err);
         }
 
         var categories = value.categories
@@ -123,11 +118,10 @@ exports.list = function(req, res, next) {
         // Iterate through all runs, unwound by team
         findAllRuns(runs, function(err, run) {
           if (err) {
-            return doNext(err);
+            return next(err);
           }
 
           if (!run) {
-            db.close();
             return res.render('graph/dashboard', { matrix: matrix
                                                  , teams: teams
                                                  , categories: categories
@@ -165,7 +159,7 @@ exports.list = function(req, res, next) {
 exports.structure = function(req, res, next) {
   var id = req.params.id;
 
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return next(err);
     }
@@ -194,8 +188,6 @@ exports.structure = function(req, res, next) {
         if (err) {
           return next(err);
         }
-
-        db.close();
 
         var pathname = path.join('private/graphs', doc.file);
 
@@ -217,7 +209,7 @@ exports.structure = function(req, res, next) {
 exports.layout = function(req, res, next) {
   var id = req.params.id;
 
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return next(err);
     }
@@ -247,8 +239,6 @@ exports.layout = function(req, res, next) {
           return next(err);
         }
 
-        db.close();
-
         var pathname = path.join('private/layouts', doc.file);
 
         fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
@@ -269,7 +259,7 @@ exports.layout = function(req, res, next) {
 exports.model = function(req, res, next) {
   var id = req.params.id;
 
-  MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+  mongo.connect(function(err, db) {
     if (err) {
       return next(err);
     }
@@ -291,8 +281,6 @@ exports.model = function(req, res, next) {
       if (!doc) {
         return res.json(404, { error: 'invalid graph' });
       }
-
-      db.close();
 
       var pathname = path.join('private/runs', doc.file);
 

@@ -7,7 +7,7 @@ var fs = require('fs')
   , path = require('path');
 
 var bcrypt = require('bcrypt-nodejs')
-  , MongoClient = require('mongodb').MongoClient
+  , mongo = require('../config/mongo')
   , passport = require('passport');
 
 /*
@@ -55,14 +55,9 @@ exports.doRegister = function(req, res, next) {
       return next(err);
     }
 
-    function callback(err) {
-      db.close();
-      return next(err);
-    };
-
-    MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+    mongo.connect(function(err, db) {
       if (err) {
-        return callback(err);
+        return next(err);
       }
 
       var teams = db.collection('teams');
@@ -76,7 +71,7 @@ exports.doRegister = function(req, res, next) {
 
         // Some other kind of error
         else if (err) {
-          return callback(err);
+          return next(err);
         }
 
         // Make directory for submissions
@@ -88,7 +83,7 @@ exports.doRegister = function(req, res, next) {
 
         req.login(docs[0], function(err) {
           if (err) {
-            return callback(err);
+            return next(err);
           }
 
           req.flash('log', 'Successfully registered as team %s.', docs[0].name);
