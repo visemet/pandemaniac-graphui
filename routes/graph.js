@@ -143,7 +143,14 @@ exports.list = function(req, res, next) {
                 matrix[i][j] = [];
               }
 
-              matrix[i][j].push({ id: run._id, teams: run.teams });
+              var score = '-';
+              if (run.scores) {
+                score = run.scores[team];
+              }
+
+              matrix[i][j].push({ id: run._id
+                                , teams: run.teams
+                                , score: score });
             }
           });
         });

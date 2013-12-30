@@ -26,7 +26,7 @@ block content
                   a(href='graph/' + entry.id,
                     data-toggle='popover',
                     data-placement='top',
-                    data-content=entry.teams.join(' ')) View
+                    data-content=entry.teams.join(' '))= entry.score
 
 append js
   script(src='/js/load-tooltips.js')
