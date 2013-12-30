@@ -50,6 +50,11 @@ app.configure(function() {
   });
 
   app.use(app.router);
+
+  // Fallback to 404 if no matching route found
+  app.use(function(req, res) {
+    res.status(404).render('404');
+  });
 });
 
 app.configure('development', function() {
