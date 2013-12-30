@@ -8,7 +8,7 @@ var fs = require('fs')
 
 var bcrypt = require('bcrypt-nodejs')
   , mongo = require('../config/mongo')
-  , passport = require('passport');
+  , passport = require('../config/passport');
 
 /*
  * Constructs a team document of the following form.
