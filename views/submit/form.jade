@@ -24,27 +24,28 @@ block content
 
       #upload.tab-pane.fade(class=selected === 'upload' ? 'active in' : '')
         #timer.progress.progress-striped.active
-          .bar.bar-danger(
-            data-remain='#{remain || 0}'
-          , data-timeout='#{timeout || 0}'
-          , style='width: 0%'
-          )
+          .bar.bar-danger(data-remain='#{remain || 0}',
+                          data-timeout='#{timeout || 0}')
 
-        form(action=submission + '/upload', method='post', enctype='multipart/form-data')
-          .fileupload.fileupload-new(data-provides='fileupload', data-name='vertices')
+        form(action=submission + '/upload',
+             method='post',
+             enctype='multipart/form-data')
+          .fileupload.fileupload-new(data-provides='fileupload',
+                                     data-name='vertices')
             .control-group
               .input-append
                 .input-large.uneditable-input
                   i.icon-file.fileupload-exists
-                  | 
+                  span= ' '
                   span.fileupload-preview
                 span.btn.btn-info.btn-file
                   span.fileupload-new Select file
                   span.fileupload-exists Change
                   input(type='file')
-                a.btn.btn-warning.btn-file.fileupload-exists(data-dismiss='fileupload') Remove
+                a.btn.btn-warning.btn-file.fileupload-exists(
+                    data-dismiss='fileupload') Remove
             .control-group
-              .control
+              .controls
                 button.btn.btn-primary.btn-file.fileupload-exists(type='submit')
                   i.icon-upload.icon-white
                   |  Upload

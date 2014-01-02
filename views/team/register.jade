@@ -5,9 +5,15 @@ block content
     form.form-horizontal(action='/register', method='post')
       .control-group
         label.control-label(for='username') Team Name
-        .controls: input(type='text', id='username', name='username', placeholder='Team name')
+        .controls: input(type='text',
+                         id='username',
+                         name='username',
+                         placeholder='Team name')
       .control-group
         label.control-label(for='password') Password
-        .controls: input(type='password', id='password', name='password', placeholder='Password')
+        .controls: input(type='password',
+                         id='password',
+                         name='password',
+                         placeholder='Password')
       .control-group
         .controls: input.btn.btn-success(type='submit', value='Register')
