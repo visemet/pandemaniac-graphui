@@ -38,7 +38,7 @@ $(function() {
             + 'scale(' + d3.event.scale + ')');
       };
 
-      var width = 960
+      var width = '100%'
         , height = 500;
 
       var color = d3.scale.category10();
@@ -52,6 +52,8 @@ $(function() {
           .append('svg:svg')
             .attr('width', width)
             .attr('height', height)
+            .attr('viewBox', '0 0 960 ' + height)
+            .attr('preserveAspectRatio', 'xMidYMid meet')
             .attr('pointer-events', 'all')
           .append('svg:g')
             .attr('width', width)
@@ -66,27 +68,29 @@ $(function() {
           .attr('height', height)
           .style('fill', 'white');
 
-      var link = vis.selectAll('line.link')
-          .data(links)
-          .enter().append('svg:line')
-          .attr('class', 'link')
-          .attr('x1', function(d) { return d.source.x; })
-          .attr('y1', function(d) { return d.source.y; })
-          .attr('x2', function(d) { return d.target.x; })
-          .attr('y2', function(d) { return d.target.y; })
-          .style('stroke', 'gray')
-          .style('opacity', 0.1);
+      var link = vis.selectAll('line.link');
+
+      if (nodes.length <= 200) {
+        link.data(links)
+            .enter().append('svg:line')
+            .attr('class', 'link')
+            .attr('x1', function(d) { return d.source.x; })
+            .attr('y1', function(d) { return d.source.y; })
+            .attr('x2', function(d) { return d.target.x; })
+            .attr('y2', function(d) { return d.target.y; })
+            .style('stroke', 'gray')
+            .style('opacity', 0.1);
+      }
 
       var legend = d3.select('#legend')
           .append('svg:svg')
-            .attr('width', 200)
-            .attr('height', 200);
+            .attr('width', width)
+            .attr('height', height);
 
       var node = vis.selectAll('circle.node')
           .data(nodes)
           .enter().append('svg:circle')
           .attr('r', 3)
-          .attr('transform', function(d) { return 'translate(' + d + ')'; })
           .attr('id', function(d, i) { return prefix + d.id; })
           .attr('class', 'node')
           .attr('cx', function(d) { return d.x; })
@@ -100,12 +104,14 @@ $(function() {
       var items = {}
         , padding = 5;
 
+      var uncolored = '$uncolored';
+
       function applyDiff(refs, diff) {
         if (diff) {
           $.each(diff, function(key, values) {
             $.each(values, function(i, value) {
               // Subtract nodes that were taken
-              var old = refs[value].team ? refs[value].team : '_uncolored';
+              var old = refs[value].team ? refs[value].team : uncolored;
               items[old].score -= 1;
 
               refs[value].team = key;
@@ -126,7 +132,7 @@ $(function() {
 
         // Set up the legend
         function computeItems() {
-          items = { _uncolored: { color: 'gray', score: nodes.length } };
+          items[uncolored] = { color: 'gray', score: nodes.length };
 
           $.each(steps['0'], function(key, values) {
             items[key] = { color: colors[key], score: 0 };
