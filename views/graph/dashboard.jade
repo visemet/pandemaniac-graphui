@@ -8,25 +8,36 @@ block content
           th
           each category in categories
             each value, key in category
-              th(colspan=value.length)= key
+              th(colspan=value.length + 1)= key
         tr
           th
-          for graph in graphs
-            th= graph
+          each category in categories
+            each value, key in category
+              each graph in value
+                th= graph
+              th total
       tbody
       each row, i in matrix
         tr
           td= teams[i]
-          each col, j in row
-            td
-              if col
-                each entry, k in col
-                  if k !== 0
-                    br
-                  a(href='graph/' + entry.id,
-                    data-toggle='popover',
-                    data-placement='top',
-                    data-content=entry.teams.join(' '))= entry.score
+          - var j = 0
+          each category in categories
+            - var total = 0
+            each value, key in category
+              each graph in value
+                - var col = matrix[i][j]
+                td
+                  if col
+                    each entry, k in col
+                      - total += entry.score
+                      if k !== 0
+                        br
+                      a(href='graph/' + entry.id,
+                        data-toggle='popover',
+                        data-placement='top',
+                        data-content=entry.teams.join(' '))= entry.score
+                - j++
+              td= total
 
 append js
   script(src='/js/load-tooltips.js')
