@@ -9,7 +9,7 @@ var fs = require('fs')
 var d3 = require('d3')
   , _ = require('underscore');
 
-var pathname = path.join('private', 'graphs', process.argv[2])
+var pathname = path.join(process.argv[2])
 fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
   if (err) {
     throw err;
