@@ -13,41 +13,46 @@ block content
           a(href='#upload', data-toggle='tab') Upload
       else
         li.disabled: a Upload
+    .spacer20
 
     #tabContent.tab-content
       #download.tab-pane.fade(class=selected === 'download' ? 'active in' : '')
-        .control-group
-          .controls
+        .form-group
+          .col-sm-4
             a.btn.btn-primary(href=submission + '/download')
-              i.icon-download.icon-white
+              i.glyphicon.glyphicon-download
               |  Download
 
       #upload.tab-pane.fade(class=selected === 'upload' ? 'active in' : '')
         #timer.progress.progress-striped.active
-          .bar.bar-danger(data-remain='#{remain || 0}',
-                          data-timeout='#{timeout || 0}')
+          .progress-bar.progress-bar-danger(data-remain='#{remain || 0}',
+                                            data-timeout='#{timeout || 0}',
+                                            style='width: 0%')
 
         form(action=submission + '/upload',
              method='post',
              enctype='multipart/form-data')
           .fileupload.fileupload-new(data-provides='fileupload',
                                      data-name='vertices')
-            .control-group
-              .input-append
-                .input-large.uneditable-input
-                  i.icon-file.fileupload-exists
-                  span= ' '
-                  span.fileupload-preview
-                span.btn.btn-info.btn-file
-                  span.fileupload-new Select file
-                  span.fileupload-exists Change
-                  input(type='file')
-                a.btn.btn-warning.btn-file.fileupload-exists(
-                    data-dismiss='fileupload') Remove
-            .control-group
-              .controls
+            .form-group
+              .row: .col-sm-8
+                .input-group
+                  .form-control.uneditable-input
+                    i.glyphicon.glyphicon-file.fileupload-exists
+                    span= ' '
+                    span.fileupload-preview
+                  span.input-group-btn
+                    span.btn.btn-info.btn-file
+                      span.fileupload-new Select file
+                      span.fileupload-exists Change
+                      input(type='file')
+                    a.btn.btn-warning.btn-file.fileupload-exists(
+                        data-dismiss='fileupload') Remove
+
+            .form-group
+              .row: .col-sm-4
                 button.btn.btn-primary.btn-file.fileupload-exists(type='submit')
-                  i.icon-upload.icon-white
+                  i.glyphicon.glyphicon-upload
                   |  Upload
 
 append js

@@ -3,18 +3,21 @@ extends ../layout
 block content
   .container
     .row
-      #chart.span9
-      #legend.span3
+      #chart.col-xs-9
+      #legend.col-xs-3
   .spacer30
   .container
-    .input-prepend.input-append
-      button#step-backward.btn.btn-info(type='button')
-        i.icon-step-backward.icon-white
-      input#step-no.input-mini(type='text', value='0')
-      button#play.btn.btn-info(type='button')
-        i.icon-play.icon-white
-      button#step-forward.btn.btn-info(type='button')
-        i.icon-step-forward.icon-white
+    .col-sm-4
+      .input-group
+        .input-group-btn
+          button#step-backward.btn.btn-info(type='button')
+            i.glyphicon.glyphicon-step-backward
+        input#step-no.form-control(type='text', value='0')
+        .input-group-btn
+          button#play.btn.btn-info(type='button')
+            i.glyphicon.glyphicon-play
+          button#step-forward.btn.btn-info(type='button')
+            i.glyphicon.glyphicon-step-forward
 
 append js
   script(src='/js/d3.v3.min.js')

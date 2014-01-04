@@ -1,6 +1,6 @@
 $(function() {
   var timer = $('#timer')
-    , bar = timer.find('.bar');
+    , bar = timer.find('.progress-bar');
 
   var timeout = +bar.attr('data-timeout');
 

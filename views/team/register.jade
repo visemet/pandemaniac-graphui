@@ -3,17 +3,20 @@ extends ../layout
 block content
   .container
     form.form-horizontal(action='/register', method='post')
-      .control-group
-        label.control-label(for='username') Team Name
-        .controls: input(type='text',
-                         id='username',
-                         name='username',
-                         placeholder='Team name')
-      .control-group
-        label.control-label(for='password') Password
-        .controls: input(type='password',
-                         id='password',
-                         name='password',
-                         placeholder='Password')
-      .control-group
-        .controls: input.btn.btn-success(type='submit', value='Register')
+      .form-group
+        label.col-sm-2.control-label(for='username') Team Name
+        .col-sm-4
+          input.form-control(type='text',
+                             id='username',
+                             name='username',
+                             placeholder='Team name')
+      .form-group
+        label.col-sm-2.control-label(for='password') Password
+        .col-sm-4
+          input.form-control(type='password',
+                             id='password',
+                             name='password',
+                             placeholder='Password')
+      .form-group
+        .col-sm-offset-2.col-sm-4
+          input.btn.btn-success(type='submit', value='Register')
