@@ -76,7 +76,7 @@ exports.index = function(req, res, next) {
         , log
         , remain;
 
-      if (ttl !== -1) {
+      if (ttl !== -2) {
         // Select upload tab
         selected = 'upload';
 
@@ -107,13 +107,13 @@ exports.index = function(req, res, next) {
           // ...or has already attempted
           else if (!attempt.at) {
             // ...but failed to submit before timeout
-            if (ttl === -1) {
+            if (ttl === -2) {
               error = [ 'Failed to submit before timeout.' ];
             }
           }
 
           // ...while submission time remains
-          else if (ttl !== -1) {
+          else if (ttl !== -2) {
               info = [ 'Already have uploaded a submission' ];
           }
 
