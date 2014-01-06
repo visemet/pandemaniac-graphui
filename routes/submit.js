@@ -166,9 +166,9 @@ exports.index = function(req, res, next) {
       }
 
       var selected = 'download'
-        , error
-        , info
-        , log
+        , error = res.locals.error
+        , info = res.locals.info
+        , log = res.locals.log
         , remain;
 
       if (ttl !== -2) {

@@ -35,13 +35,12 @@ app.configure(function() {
 
   // Middleware to refresh notifications
   app.use(function(req, res, next) {
-    app.locals({
-      title: 'Pandemaniac'
-    , error: req.flash('error')
-    , warn: req.flash('warn')
-    , info: req.flash('info')
-    , log: req.flash('log')
-    });
+    res.locals({ title: 'Pandemaniac'
+               , error: req.flash('error')
+               , warn: req.flash('warn')
+               , info: req.flash('info')
+               , log: req.flash('log')
+               });
 
     next(null, req, res);
   });
