@@ -13,6 +13,91 @@ var redis = require('redis')
 
 var mongo = require('../config/mongo');
 
+function makeKey(graph, team) {
+  return graph + '+' + team;
+};
+
+function findAllGraphs(graphs, next) {
+  var res = [];
+
+  var now = new Date()
+    , query = { start: { $lt: now } };
+
+  graphs.find(query, {}, { sort: 'end' }).each(function(err, doc) {
+    if (err) {
+      return next(err);
+    }
+
+    // Check if have exhausted cursor
+    if (doc === null) {
+      return next(null, res);
+    }
+
+    res.push(doc);
+  });
+};
+
+function classifyAllAttempts(attempts, team, next) {
+  var res = {};
+
+  var query = { team: team };
+  attempts.find(query, function(err, cursor) {
+    function iter(err, doc) {
+      if (err) {
+        return next(err);
+      }
+
+      // Check if have exhausted cursor
+      if (doc === null) {
+        return next(null, res);
+      }
+
+      var key = makeKey(doc.graph, doc.team);
+      client.ttl(key, function(err, ttl) {
+        if (err) {
+          return next(err);
+        }
+
+        res[doc.graph] = classifyAttempt(doc, ttl);
+        return cursor.nextObject(iter);
+      });
+    };
+
+    if (err) {
+      return next(err);
+    }
+
+    return cursor.nextObject(iter);
+  });
+};
+
+/**
+ * Returns a JSON object of the form
+ *   { downloaded: bool, uploaded: bool, expired: bool }
+ *
+ * Note that all of these graphs must have been downloaded in order for
+ * them to appear in the attempts collection.
+ */
+function classifyAttempt(attempt, ttl) {
+  var res = { downloaded: true };
+
+  // Check whether any successful submissions have been made
+  if (attempt.at) {
+    res.uploaded = true;
+  } else {
+    res.uploaded = false;
+  }
+
+  // Check whether any time remains for submission
+  if (ttl === -2) {
+    res.expired = true;
+  } else if (ttl >= 0) {
+    res.expired = false;
+  }
+
+  return res;
+};
+
 /*
  * GET list of submissions.
  */
@@ -23,24 +108,34 @@ exports.list = function(req, res) {
       return next(err);
     }
 
-    var graphs = db.collection('graphs');
+    var graphsCollection = db.collection('graphs')
+      , attemptsCollection = db.collection('attempts');
 
-    var now = new Date()
-      , query = { start: { $lt: now }, end: { $gt: now } };
-
-    var active = [];
-
-    graphs.find(query).each(function(err, doc) {
+    // Find all graphs
+    findAllGraphs(graphsCollection, function(err, graphs) {
       if (err) {
         return next(err);
       }
 
-      // Check if have exhausted cursor
-      if (doc === null) {
-        return res.render('submit/dashboard', { active: active });
-      }
+      // Classify all attempts
+      var team = req.user;
+      classifyAllAttempts(attemptsCollection, team, function(err, attempts) {
+        if (err) {
+          return next(err);
+        }
 
-      active.push({ href: doc.name, text: doc.name });
+        var active = [];
+
+        graphs.forEach(function(value) {
+          var graph = attempts[value.name] || { downloaded: false };
+          graph.href = value.name;
+          graph.text = value.name;
+
+          active.push(graph);
+        });
+
+        return res.render('submit/dashboard', { active: active });
+      });
     });
   });
 };
@@ -193,7 +288,7 @@ exports.download = function(req, res, next) {
               }
 
               // Returns {} when not present, instead of null
-              if (!attempt._id) {
+              if (found.canUpload && !attempt._id) {
                 // Set key to expire with timeout
                 // only if does not already exist
                 client.set(key, true, 'EX', timeout, 'NX', function(err) {
@@ -373,7 +468,7 @@ function verifyName(submission, found) {
     var graphs = db.collection('graphs');
 
     var now = new Date()
-      , query = { name: submission, start: { $lt: now }, end: { $gt: now } };
+      , query = { name: submission, start: { $lt: now } };
 
     graphs.findOne(query, function(err, doc) {
       if (err) {
@@ -389,6 +484,7 @@ function verifyName(submission, found) {
                   , minor: +match[2]
                   , patch: +match[3]
                   , graph: doc
+                  , canUpload: doc.end > now
                   }
       );
     });

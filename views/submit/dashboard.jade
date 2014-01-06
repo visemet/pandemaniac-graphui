@@ -4,7 +4,17 @@ block content
   .container
     ul.nav.nav-pills
       each link in active
-        li
+        li: div
           .spacer5
-          a.btn.btn-default(href='/submit/' + link.href)= link.text
+          if link.downloaded
+            if link.uploaded && link.expired
+              a.btn.btn-success(href='/submit/' + link.href)= link.text
+            else if link.uploaded && !link.expired
+              a.btn.btn-info(href='/submit/' + link.href)= link.text
+            else if !link.uploaded && link.expired
+              a.btn.btn-danger(href='/submit/' + link.href)= link.text
+            else if !link.uploaded && !link.expired
+              a.btn.btn-warning(href='/submit/' + link.href)= link.text
+          else
+            a.btn.btn-default(href='/submit/' + link.href)= link.text
           .spacer5
