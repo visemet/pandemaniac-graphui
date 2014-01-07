@@ -3,38 +3,44 @@ extends ../layout
 block content
   .container
     - var jOffset = 0
-    each category in categories
-      .panel.panel-default
-        .panel-heading
-          h3.panel-title= category.name
-        table.table.table-striped.table-bordered
-          thead
-            tr
-              th
-              each graph in category.graphs
-                th= graph
-              th total
-          tbody
-            each row, i in matrix
-              - var j = jOffset
-              tr
-                td= teams[i]
-                - var total = 0
-                each graph in category.graphs
-                  - var col = matrix[i][j]
-                  td
-                    if col
-                      each entry, k in col
-                        - total += entry.score
-                        if k !== 0
-                          br
-                        a(href='graph/' + entry.id,
-                          data-toggle='popover',
-                          data-placement='top',
-                          data-teams-list=entry.teams.join(' '))= entry.score
-                  - j++
-                td= total
-      - jOffset += category.graphs.length
+    #results.panel-group
+      each category in categories
+        .panel.panel-default
+          .panel-heading
+            h3.panel-title
+              a(data-toggle='collapse',
+                data-parent='#results',
+                href='#' + category.name)= category.name
+          .panel-collapse.collapse(id=category.name)
+            table.table.table-striped.table-bordered
+              thead
+                tr
+                  th
+                  each graph in category.graphs
+                    th= graph
+                  th total
+              tbody
+                each row, i in matrix
+                  - var j = jOffset
+                  tr
+                    td= teams[i]
+                    - var total = 0
+                    each graph in category.graphs
+                      - var col = matrix[i][j]
+                      td
+                        if col
+                          each entry, k in col
+                            - total += entry.score
+                            if k !== 0
+                              br
+                            - var teamsList = entry.teams.join(' ')
+                            a(href='graph/' + entry.id,
+                              data-toggle='popover',
+                              data-placement='top',
+                              data-teams-list=teamsList)= entry.score
+                      - j++
+                    td= total
+          - jOffset += category.graphs.length
 
 append js
   script(src='/js/load-tooltips.js')
