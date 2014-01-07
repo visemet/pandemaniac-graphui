@@ -4,7 +4,7 @@ $(function() {
   , trigger: 'hover'
   , title: '<i>Participants</i>'
   , content: function() {
-      var teams = $(this).data('content').split(' ')
+      var teams = $(this).data('teams-list').split(' ')
         , list = $('<ul class="nav nav-list">');
 
       teams.forEach(function(team) {
