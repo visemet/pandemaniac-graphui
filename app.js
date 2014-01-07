@@ -9,14 +9,14 @@ var express = require('express')
   , net = require('net')
   , path = require('path');
 
-var routes = require('./routes')
-  , submit = require('./routes/submit')
-  , team = require('./routes/team')
-  , teamRegister = require('./routes/team-register')
-  , graph = require('./routes/graph');
-
 var mongo = require('./config/mongo')
   , passport = require('./config/passport');
+
+var routes = require('./routes')
+  , submit = require('./routes/submit')
+  , team = require('./routes/team')(passport)
+  , teamRegister = require('./routes/team-register')
+  , graph = require('./routes/graph');
 
 var app = express();
 
@@ -101,8 +101,6 @@ mongo.connect(function(err, db) {
 app.get('/login', anonymous, team.login);
 app.post('/login', anonymous, team.doLogin);
 app.get('/logout', team.logout);
-
-app.get('/team/:id', restrict, team.index);
 
 app.get('/submit', restrict, submit.list);
 app.get('/submit/:id', restrict, submit.index);
