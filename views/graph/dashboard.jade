@@ -2,42 +2,39 @@ extends ../layout
 
 block content
   .container
-    table.table.table-striped.table-bordered
-      thead
-        tr
-          th
-          each category in categories
-            each value, key in category
-              th(colspan=value.length + 1)= key
-        tr
-          th
-          each category in categories
-            each value, key in category
-              each graph in value
+    - var jOffset = 0
+    each category in categories
+      .panel.panel-default
+        .panel-heading
+          h3.panel-title= category.name
+        table.table.table-striped.table-bordered
+          thead
+            tr
+              th
+              each graph in category.graphs
                 th= graph
               th total
-      tbody
-      each row, i in matrix
-        tr
-          td= teams[i]
-          - var j = 0
-          each category in categories
-            - var total = 0
-            each value, key in category
-              each graph in value
-                - var col = matrix[i][j]
-                td
-                  if col
-                    each entry, k in col
-                      - total += entry.score
-                      if k !== 0
-                        br
-                      a(href='graph/' + entry.id,
-                        data-toggle='popover',
-                        data-placement='top',
-                        data-teams-list=entry.teams.join(' '))= entry.score
-                - j++
-              td= total
+          tbody
+            each row, i in matrix
+              - var j = jOffset
+              tr
+                td= teams[i]
+                - var total = 0
+                each graph in category.graphs
+                  - var col = matrix[i][j]
+                  td
+                    if col
+                      each entry, k in col
+                        - total += entry.score
+                        if k !== 0
+                          br
+                        a(href='graph/' + entry.id,
+                          data-toggle='popover',
+                          data-placement='top',
+                          data-teams-list=entry.teams.join(' '))= entry.score
+                  - j++
+                td= total
+      - jOffset += category.graphs.length
 
 append js
   script(src='/js/load-tooltips.js')

@@ -47,8 +47,7 @@ function findAllGraphs(graphs, next) {
       , graphs = [];
 
     res.forEach(function(value) {
-      var category = {};
-      category[value._id] = value.graph;
+      var category = { name: value._id, graphs: value.graph };
 
       categories.push(category);
       graphs.push.apply(graphs, value.graph)
