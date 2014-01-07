@@ -14,8 +14,7 @@ var mongo = require('./config/mongo')
 
 var routes = require('./routes')
   , submit = require('./routes/submit')
-  , team = require('./routes/team')(passport)
-  , teamRegister = require('./routes/team-register')
+  , team = require('./routes/team')
   , graph = require('./routes/graph');
 
 var app = express();
@@ -92,15 +91,14 @@ mongo.connect(function(err, db) {
     throw err;
   }
 
-  teamRegister = teamRegister(db);
+  team = team(passport, db);
 
-  app.get('/register', anonymous, teamRegister.register);
-  app.post('/register', anonymous, teamRegister.doRegister);
+  app.get('/register', anonymous, team.register);
+  app.post('/register', anonymous, team.doRegister);
+  app.get('/login', anonymous, team.login);
+  app.post('/login', anonymous, team.doLogin);
+  app.get('/logout', team.logout);
 });
-
-app.get('/login', anonymous, team.login);
-app.post('/login', anonymous, team.doLogin);
-app.get('/logout', team.logout);
 
 app.get('/submit', restrict, submit.list);
 app.get('/submit/:id', restrict, submit.index);
