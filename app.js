@@ -12,9 +12,11 @@ var express = require('express')
 var routes = require('./routes')
   , submit = require('./routes/submit')
   , team = require('./routes/team')
+  , teamRegister = require('./routes/team-register')
   , graph = require('./routes/graph');
 
-var passport = require('./config/passport');
+var mongo = require('./config/mongo')
+  , passport = require('./config/passport');
 
 var app = express();
 
@@ -85,8 +87,17 @@ function anonymous(req, res, next) {
   res.redirect('/');
 }
 
-app.get('/register', anonymous, team.register);
-app.post('/register', anonymous, team.doRegister);
+mongo.connect(function(err, db) {
+  if (err) {
+    throw err;
+  }
+
+  teamRegister = teamRegister(db);
+
+  app.get('/register', anonymous, teamRegister.register);
+  app.post('/register', anonymous, teamRegister.doRegister);
+});
+
 app.get('/login', anonymous, team.login);
 app.post('/login', anonymous, team.doLogin);
 app.get('/logout', team.logout);
