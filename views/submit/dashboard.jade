@@ -18,3 +18,23 @@ block content
           else
             a.btn.btn-default(href='/submit/' + link.href)= link.text
           .spacer5
+    .spacer15
+    p
+      span.label.label-success x.y.z
+      |  indicates that at least one successful submission was made,
+      |  and the timer has expired.
+    p
+      span.label.label-info x.y.z
+      |  indicates that at least one successful submission has been made,
+      |  and the timer has yet to expire.
+    p
+      span.label.label-danger x.y.z
+      |  indicates that no successful submission was made,
+      |  and the timer has expired.
+    p
+      span.label.label-warning x.y.z
+      |  indicates that no successful submission has been made,
+      |  and the timer has yet to expire.
+    p
+      span.label.label-default x.y.z
+      |  indicates that the graph has not been downloaded.
