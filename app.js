@@ -10,7 +10,8 @@ var express = require('express')
   , path = require('path');
 
 var mongo = require('./config/mongo')
-  , passport = require('./config/passport');
+  , passport = require('./config/passport')
+  , redis = require('redis');
 
 var routes = require('./routes')
   , submit = require('./routes/submit')
@@ -91,7 +92,10 @@ mongo.connect(function(err, db) {
     throw err;
   }
 
+  var client = redis.createClient();
+
   team = team(passport, db);
+  submit = submit(db, client);
   graph = graph(db);
 
   // Set up team routes
@@ -101,19 +105,22 @@ mongo.connect(function(err, db) {
   app.post('/login', anonymous, team.doLogin);
   app.get('/logout', team.logout);
 
+  // Set up submit routes
+  app.get('/submit', restrict, submit.list);
+  app.get('/submit/:id', restrict, submit.index);
+  app.get('/submit/:id/download', restrict, submit.download);
+  app.post('/submit/:id/upload', restrict, submit.upload);
+
   // Set up graph routes
   app.get('/graph', graph.list);
   app.get('/graph/:id', graph.index);
   app.get('/api/v1/graph/:id/structure', graph.structure);
   app.get('/api/v1/graph/:id/layout', graph.layout);
   app.get('/api/v1/graph/:id/model', graph.model);
+
+  http.createServer(app).listen(app.get('port'), function() {
+    console.log('Express server listening on port ' + app.get('port'));
+  });
 });
 
-app.get('/submit', restrict, submit.list);
-app.get('/submit/:id', restrict, submit.index);
-app.get('/submit/:id/download', restrict, submit.download);
-app.post('/submit/:id/upload', restrict, submit.upload);
 
-http.createServer(app).listen(app.get('port'), function() {
-  console.log("Express server listening on port " + app.get('port'));
-});
