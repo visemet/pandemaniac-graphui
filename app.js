@@ -92,24 +92,27 @@ mongo.connect(function(err, db) {
   }
 
   team = team(passport, db);
+  graph = graph(db);
 
+  // Set up team routes
   app.get('/register', anonymous, team.register);
   app.post('/register', anonymous, team.doRegister);
   app.get('/login', anonymous, team.login);
   app.post('/login', anonymous, team.doLogin);
   app.get('/logout', team.logout);
+
+  // Set up graph routes
+  app.get('/graph', graph.list);
+  app.get('/graph/:id', graph.index);
+  app.get('/api/v1/graph/:id/structure', graph.structure);
+  app.get('/api/v1/graph/:id/layout', graph.layout);
+  app.get('/api/v1/graph/:id/model', graph.model);
 });
 
 app.get('/submit', restrict, submit.list);
 app.get('/submit/:id', restrict, submit.index);
 app.get('/submit/:id/download', restrict, submit.download);
 app.post('/submit/:id/upload', restrict, submit.upload);
-
-app.get('/graph', graph.list);
-app.get('/graph/:id', graph.index);
-app.get('/api/v1/graph/:id/structure', graph.structure);
-app.get('/api/v1/graph/:id/layout', graph.layout);
-app.get('/api/v1/graph/:id/model', graph.model);
 
 http.createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));
