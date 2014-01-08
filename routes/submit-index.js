@@ -50,7 +50,9 @@ module.exports = exports = function(db, client) {
 
               // Check if has not downloaded yet
               if (!attempt) {
-                info.push('Please refresh after download completes.');
+                if (found.canUpload) {
+                  info.push('Please refresh after download completes.');
+                }
               }
 
               // ...or has already downloaded
