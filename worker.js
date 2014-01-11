@@ -9,7 +9,8 @@ var fs = require('fs')
 var d3 = require('d3')
   , _ = require('underscore');
 
-var pathname = path.join(process.argv[2])
+var pathname = process.argv[2]
+  , filename = path.basename(pathname);
 fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
   if (err) {
     throw err;
@@ -57,5 +58,10 @@ fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
     result[key] = { x: value.x, y: value.y };
   });
 
-  console.log(JSON.stringify(result));
+  pathname = path.join('private', 'layouts', filename);
+  fs.writeFile(pathname, JSON.stringify(result), function (err) {
+    if (err) {
+      throw err;
+    }
+  });
 });
