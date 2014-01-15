@@ -42,6 +42,7 @@ app.configure(function() {
                , warn: req.flash('warn')
                , info: req.flash('info')
                , log: req.flash('log')
+               , user: !!req.user
                });
 
     next(null, req, res);
