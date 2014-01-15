@@ -15,8 +15,10 @@ block content
               a.btn.btn-danger(href='/submit/' + link.href)= link.text
             else if !link.uploaded && !link.expired
               a.btn.btn-warning(href='/submit/' + link.href)= link.text
-          else
+          else if !link.expired
             a.btn.btn-default(href='/submit/' + link.href)= link.text
+          else
+            a.btn.btn-link(href='/submit/' + link.href)= link.text
           .spacer5
     .spacer15
     p
@@ -37,4 +39,8 @@ block content
       |  and the timer has yet to expire.
     p
       span.label.label-default x.y.z
-      |  indicates that the graph was not attempted.
+      |  indicates that the graph has not been attempted yet.
+    p
+      span.label: a x.y.z
+      |  indicates that the graph was not attempted,
+      |  but can still be downloaded.

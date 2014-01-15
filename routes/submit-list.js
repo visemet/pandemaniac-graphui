@@ -23,10 +23,13 @@ module.exports = exports = function(db, client) {
               return next(err);
             }
 
-            var active = [];
+            var active = []
+              , now = new Date();
 
             graphs.forEach(function(value) {
-              var graph = attempts[value.name] || { downloaded: false };
+              var graph = attempts[value.name] || { downloaded: false
+                                                  , expired: value.end <= now
+                                                  };
               graph.href = value.name;
               graph.text = value.name;
 
