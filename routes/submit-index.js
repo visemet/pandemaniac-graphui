@@ -75,6 +75,9 @@ module.exports = exports = function(db, client) {
               }
 
               res.render('submit/form', { graph: graph
+                                        , numPlayers: found.numPlayers
+                                        , numSeeds: found.numSeeds
+                                        , canUpload : found.canUpload
                                         , selected: selected
                                         , timeout: timeout
                                         , remain: remain

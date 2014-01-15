@@ -5,6 +5,17 @@ append css
 
 block content
   .container
+    p
+      | This is a graph on which #{numPlayers} players compete.
+      | Please include #{''}
+      em exactly
+      |  #{numSeeds} seed nodes in your submission.
+    if canUpload
+      p
+        | You will have #{Math.floor(timeout / 60)} minutes to upload a
+        | submission.
+    .spacer5
+
     ul#tab.nav.nav-tabs
       li(class=selected === 'download' ? 'active' : '')
         a(href='#download', data-toggle='tab') Download
