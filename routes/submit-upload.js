@@ -70,7 +70,8 @@ module.exports = exports = function(db, client) {
                 return nextLine(false); // stop reading
               }
 
-              fs.appendFile(output, line + '\n', { mode: 0644 }, function(err) {
+              line = line.trim() + '\n';
+              fs.appendFile(output, line, { mode: 0644 }, function(err) {
                 if (err) {
                   return next(err);
                 }
@@ -143,7 +144,7 @@ function verifyLine(line, numRemain, isLast) {
   }
 
   // Check that each line is an integer
-  if (!/\d+/.test(line)) {
+  if (!/^\d+\w*$/.test(line)) {
     res.isValid = false;
     res.message = 'Expected integer on line %d.';
   }
