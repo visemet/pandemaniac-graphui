@@ -75,6 +75,7 @@ module.exports = exports = function(db, client) {
               }
 
               res.render('submit/form', { graph: graph
+                                        , description: found.graph.desc
                                         , numPlayers: found.numPlayers
                                         , numSeeds: found.numSeeds
                                         , canUpload : found.canUpload

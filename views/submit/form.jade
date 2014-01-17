@@ -7,13 +7,15 @@ block content
   .container
     p
       | This is a graph on which #{numPlayers} players compete.
-      | Please include #{''}
+      | Your submission should include #{''}
       em exactly
-      |  #{numSeeds} seed nodes in your submission.
+      |  #{numSeeds} seed nodes.
     if canUpload
       p
-        | You will have #{Math.floor(timeout / 60)} minutes to upload a
-        | submission.
+        | You will have #{Math.floor(timeout / 60)} minutes
+        | to upload a submission.
+    if description
+      p= description
     .spacer5
 
     ul#tab.nav.nav-tabs
