@@ -18,6 +18,8 @@ var routes = require('./routes')
   , team = require('./routes/team')
   , graph = require('./routes/graph');
 
+var RedisStore = require('connect-redis')(express);
+
 var app = express();
 
 app.configure(function() {
@@ -28,7 +30,7 @@ app.configure(function() {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser());
-  app.use(express.session({ secret: 'keyboard cat' }));
+  app.use(express.session({ store: new RedisStore(), secret: 'keyboard cat' }));
   app.use(express.methodOverride());
   app.use(flash());
   app.use(passport.initialize());

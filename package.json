@@ -8,6 +8,7 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "connect-flash": "0.1.x",
+    "connect-redis": "1.4.x",
     "d3": "3.3.x",
     "express": "3.3.x",
     "jade": "0.34.x",
