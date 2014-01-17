@@ -41,8 +41,6 @@ $(function() {
       var width = '100%'
         , height = 500;
 
-      var color = d3.scale.category10();
-
       var force = d3.layout.force()
           .nodes(nodes)
           .links(links)
@@ -82,11 +80,6 @@ $(function() {
             .style('opacity', 0.1);
       }
 
-      var legend = d3.select('#legend')
-          .append('svg:svg')
-            .attr('width', width)
-            .attr('height', height);
-
       var node = vis.selectAll('circle.node')
           .data(nodes)
           .enter().append('svg:circle')
@@ -104,7 +97,7 @@ $(function() {
       var items = {}
         , padding = 5;
 
-      var uncolored = '$uncolored';
+      var uncolored = 'uncolored';
 
       function applyDiff(refs, diff) {
         if (diff) {
@@ -125,6 +118,45 @@ $(function() {
 
       // Get steps of simulation from the server
       $.getJSON('/api/v1/graph/' + id + '/model', function(steps) {
+
+        function makeLegend(items) {
+          var list = $('<ul class="nav nav-pills nav-stacked">');
+
+          $.each(items, function(key, value) {
+            var item = $('<li></li>')
+              , link = $('<a></a>')
+              , badge = $('<span class="badge pull-right"></span>');
+
+            link.text(key);
+            badge.attr('id', key);
+            badge.text(value.score);
+            badge.css('background-color', value.color);
+
+            link.append(badge);
+            item.append(link);
+            list.append(item);
+          });
+
+          list.append($('</ul>'));
+          $('#legend').append(list);
+        };
+
+        function updateLegend(items) {
+          $.each(items, function(key, value) {
+            var badge = $('#' + key);
+            badge.text(value.score);
+          });
+        };
+
+        var color;
+
+        // Choose color scale based on number of teams competing
+        if (Object.keys(steps['0']).length <= 10) {
+          color = d3.scale.category10();
+        } else {
+          color = d3.scale.category20();
+        }
+
         $.each(steps['0'], function(key, values) {
           num_colors++;
           colors[key] = color(num_colors);
@@ -140,23 +172,7 @@ $(function() {
         };
 
         computeItems();
-
-        legend.selectAll('text')
-            .data(d3.entries(items), function(d) { return d.key; })
-            .enter().append('text')
-            .attr('x', '2em')
-            .attr('y', function(d, i) { return padding + i + 'em'; })
-            .text(function(d) {
-              return d.key + ' - ' + d.value.score;
-            });
-
-        legend.selectAll('circle')
-            .data(d3.entries(items), function(d) { return d.key; })
-            .enter().append('circle')
-            .attr('cx', '1em')
-            .attr('cy', function(d, i) { return padding + i - 0.3 + 'em'; })
-            .attr('r', '0.4em')
-            .style('fill', function(d) { return d.value.color });
+        makeLegend(items);
 
         var applied = -1;
 
@@ -196,11 +212,7 @@ $(function() {
             return 'gray';
           });
 
-          legend.selectAll('text')
-              .data(d3.entries(items), function(d) { return d.key; })
-              .text(function(d) {
-                return d.key + ' - ' + d.value.score;
-              });
+          updateLegend(items);
 
           $('#step-no').val(stepNo);
         };
