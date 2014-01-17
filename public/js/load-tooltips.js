@@ -5,7 +5,7 @@ $(function() {
   , title: '<i>Participants</i>'
   , content: function() {
       var teams = $(this).data('teams-list').split(' ')
-        , list = $('<ul class="nav nav-list">');
+        , list = $('<ul class="nav">');
 
       teams.forEach(function(team) {
         list.append($('<li>' + team + '</li>'));
