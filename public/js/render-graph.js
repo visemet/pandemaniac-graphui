@@ -89,7 +89,9 @@ $(function() {
           .attr('cx', function(d) { return d.x; })
           .attr('cy', function(d) { return d.y; })
           .style('fill', 'gray')
-          .style('opacity', 0.8);
+          .style('opacity', 0.8)
+          .append('svg:title')
+          .text(function(d) { return d.id; });
 
       var colors = {}
         , num_colors = 0;
