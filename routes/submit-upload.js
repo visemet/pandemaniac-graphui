@@ -144,7 +144,7 @@ function verifyLine(line, numRemain, isLast) {
   }
 
   // Check that each line is an integer
-  if (!/^\d+\w*$/.test(line)) {
+  if (!/^\d+\s*$/.test(line)) {
     res.isValid = false;
     res.message = 'Expected integer on line %d.';
   }
