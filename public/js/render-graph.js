@@ -76,7 +76,7 @@ $(function() {
             .attr('y1', function(d) { return d.source.y; })
             .attr('x2', function(d) { return d.target.x; })
             .attr('y2', function(d) { return d.target.y; })
-            .style('stroke', 'gray')
+            .style('stroke', 'lightgray')
             .style('opacity', 0.1);
       }
 
@@ -87,7 +87,7 @@ $(function() {
           .attr('class', 'node')
           .attr('cx', function(d) { return d.x; })
           .attr('cy', function(d) { return d.y; })
-          .style('fill', 'gray')
+          .style('fill', 'lightgray')
           .style('opacity', 0.8)
           .append('svg:title')
           .text(function(d) { return d.id; });
@@ -165,7 +165,7 @@ $(function() {
 
         // Set up the legend
         function computeItems() {
-          items[uncolored] = { color: 'gray', score: nodes.length };
+          items[uncolored] = { color: 'lightgray', score: nodes.length };
 
           $.each(steps['0'], function(key, values) {
             items[key] = { color: colors[key], score: 0 };
@@ -210,7 +210,7 @@ $(function() {
               return colors[d.team];
             }
 
-            return 'gray';
+            return 'lightgray';
           });
 
           updateLegend(items);
