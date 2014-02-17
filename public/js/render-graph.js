@@ -80,9 +80,8 @@ $(function() {
             .style('opacity', 0.1);
       }
 
-      var node = vis.selectAll('circle.node')
-          .data(nodes)
-          .enter().append('svg:circle')
+      var node = vis.selectAll('circle.node').data(nodes);
+      node.enter().append('svg:circle')
           .attr('r', 3)
           .attr('id', function(d, i) { return prefix + d.id; })
           .attr('class', 'node')
