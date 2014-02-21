@@ -38,9 +38,14 @@ fs.readFile(pathname, { encoding: 'utf8' }, function(err, data) {
   var width = 960
     , height = 500;
 
+  // Refer to http://stackoverflow.com/questions/9901565
+  var k = Math.sqrt(nodes.length / (width * height));
+
   var force = d3.layout.force()
       .nodes(nodes)
       .links(links)
+      .charge(-5 / k)
+      .gravity(10 * k)
       .size([ width, height ]);
 
   var EPSILON = 0;
