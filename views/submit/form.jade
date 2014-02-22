@@ -32,7 +32,7 @@ block content
       #download.tab-pane.fade(class=selected === 'download' ? 'active in' : '')
         .form-group
           .col-sm-4
-            a.btn.btn-primary(href=graph + '/download')
+            a.btn.btn-primary(href='/submit/' + graph + '/download')
               i.glyphicon.glyphicon-download
               |  Download
 
@@ -42,7 +42,7 @@ block content
                                             data-timeout='#{timeout || 0}',
                                             style='width: 0%')
 
-        form(action=graph + '/upload',
+        form(action='/submit/' + graph + '/upload',
              method='post',
              enctype='multipart/form-data')
           .fileupload.fileupload-new(data-provides='fileupload',
